@@ -232,6 +232,7 @@ const LandingPage = ({ onLoginClick }) => {
                   <div className="w-full bg-blue-600 rounded-t h-[75%]"></div>
                   <div className="w-full bg-indigo-500 rounded-t h-[90%]"></div>
                 </div>
+                 </div>
               </div>
             </div>
           </div>

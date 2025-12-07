@@ -229,7 +229,7 @@ const LandingPage = ({ onLoginClick }) => {
     {/* Decorative Blobs */}
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-20 -z-0"></div>
   </div>
-
+</div>
 </section>
 
       {/* Features */}

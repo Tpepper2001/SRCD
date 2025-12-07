@@ -81,7 +81,7 @@ const useAutoSave = (callback, delay = 2000) => {
 };
 
 // ==================== LANDING PAGE COMPONENT ====================
-const LandingPage = ({ onLoginClick }) => {
+const LandingPage = ({ onLoginClick, onCentralAdminClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const CONTACT_NUMBER = '+2348102440375';
@@ -187,6 +187,12 @@ const LandingPage = ({ onLoginClick }) => {
             className="bg-blue-600 text-white text-lg px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-2"
           >
             Start Free Trial <ArrowRight size={20} />
+          </button>
+           <button
+            onClick={onCentralAdminClick}
+            className="text-lg px-8 py-4 rounded-xl font-bold border-2 border-slate-700 text-slate-700 hover:bg-slate-100 transition flex items-center justify-center gap-2"
+          >
+            Central Admin <Key size={20} />
           </button>
         </div>
 
@@ -1083,6 +1089,40 @@ const TeacherDashboard = ({ profile, onLogout }) => {
 };
 
 // ==================== AUTH & PORTALS ====================
+
+const CentralAdminLogin = ({ onLoginSuccess, onBack }) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        // Hardcoded central admin login
+        if (email === 'oluwatoyin@admin.com' && password === 'Funmilola') {
+            // Note: Central Admin does not use Supabase auth, just an explicit view change
+            onLoginSuccess();
+        } else {
+            window.alert('Invalid Central Admin credentials.');
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+            <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md border-t-4 border-slate-900">
+                <h1 className="text-2xl font-bold text-center mb-6 text-slate-800 flex items-center justify-center gap-2"><Shield size={24}/> Central Admin Access</h1>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input type="email" placeholder="Email Address" className="w-full p-3 border rounded bg-gray-50" value={email} onChange={e=>setEmail(e.target.value)} required />
+                    <input type="password" placeholder="Password" className="w-full p-3 border rounded bg-gray-50" value={password} onChange={e=>setPassword(e.target.value)} required />
+                    <button disabled={loading} className="w-full bg-slate-900 hover:bg-slate-700 text-white py-3 rounded font-bold transition flex justify-center">{loading ? <Loader2 className="animate-spin"/> : 'Admin Login'}</button>
+                </form>
+                <button type="button" onClick={onBack} className="w-full text-center text-sm mt-4 text-gray-500 hover:text-gray-800">Back to Home</button>
+            </div>
+        </div>
+    );
+};
+
 const Auth = ({ onLogin, onParent, onBack }) => {
     const [mode, setMode] = useState('login'); 
     const [form, setForm] = useState({ email: '', password: '', name: '', pin: '', schoolCode: '' });
@@ -1092,15 +1132,7 @@ const Auth = ({ onLogin, onParent, onBack }) => {
         e.preventDefault(); 
         setLoading(true);
         try {
-            if (mode === 'central') {
-                if (form.email === 'oluwatoyin@admin.com' && form.password === 'Funmilola') {
-                    onLogin({ role: 'central' });
-                    setLoading(false); // <--- Explicitly turn off loading on successful admin login
-                    return; // EXIT HERE to prevent hitting finally/further logic
-                } else {
-                    throw new Error("Invalid Central Admin credentials.");
-                }
-            } else if (mode === 'school_reg') {
+            if (mode === 'school_reg') {
                 const { data: pinData } = await supabase.from('subscription_pins').select('*').eq('code', form.pin).eq('is_used', false).maybeSingle();
                 if (!pinData) throw new Error('Invalid or Used PIN');
                 
@@ -1145,7 +1177,6 @@ const Auth = ({ onLogin, onParent, onBack }) => {
         } catch (err) { 
             window.alert(err.message); 
         } finally { 
-            // Only runs if the function hasn't exited already (i.e., on error or Supabase login)
             setLoading(false); 
         }
     };
@@ -1175,7 +1206,6 @@ const Auth = ({ onLogin, onParent, onBack }) => {
                     <div className="mt-6 pt-4 border-t">
                         <button onClick={onParent} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded font-bold flex items-center justify-center gap-2 mb-3"><User size={20}/> Check Student Result</button>
                         <button onClick={onBack} className="w-full text-center text-sm text-gray-500 hover:text-gray-800">Back to Home</button>
-                        <button onClick={()=>setMode('central')} className="text-xs text-gray-300 mt-4 mx-auto block">Admin</button>
                     </div>
                 )}
             </div>
@@ -1298,18 +1328,19 @@ const App = () => {
 
   // If Logged in and Profile loaded, show SaaS Dashboard
   if (session && profile) {
-      if (view === 'central' || profile.role === 'central') return <CentralAdmin onLogout={() => supabase.auth.signOut()} />; // Handling super admin special case
+      if (profile.role === 'central') return <CentralAdmin onLogout={() => supabase.auth.signOut()} />; 
       return profile.role === 'admin' 
         ? <SchoolAdmin profile={profile} onLogout={() => supabase.auth.signOut()} /> 
         : <TeacherDashboard profile={profile} onLogout={() => supabase.auth.signOut()} />;
   }
-
-  // If Public View
-  if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} />;
+  
+  // Public View Routing
+  if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} onCentralAdminClick={() => setView('central_login')} />;
   if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;
+  if (view === 'central_login') return <CentralAdminLogin onLoginSuccess={() => setView('central')} onBack={() => setView('landing')} />; // New component and handler
   
   // Auth handles login/reg
-  return <Auth onLogin={(d) => setView(d.role === 'central' ? 'central' : 'dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} />;
+  return <Auth onLogin={() => setView('dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} />;
 };
 
 export default App;

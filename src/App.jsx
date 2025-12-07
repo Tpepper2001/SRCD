@@ -81,7 +81,7 @@ const useAutoSave = (callback, delay = 2000) => {
 };
 
 // ==================== LANDING PAGE COMPONENT ====================
-const LandingPage = ({ onLoginClick, onCentralAdminClick }) => {
+const LandingPage = ({ onLoginClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const CONTACT_NUMBER = '+2348102440375';
@@ -187,12 +187,6 @@ const LandingPage = ({ onLoginClick, onCentralAdminClick }) => {
             className="bg-blue-600 text-white text-lg px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-2"
           >
             Start Free Trial <ArrowRight size={20} />
-          </button>
-           <button
-            onClick={onCentralAdminClick}
-            className="text-lg px-8 py-4 rounded-xl font-bold border-2 border-slate-700 text-slate-700 hover:bg-slate-100 transition flex items-center justify-center gap-2"
-          >
-            Central Admin <Key size={20} />
           </button>
         </div>
 
@@ -590,7 +584,7 @@ const SchoolAdmin = ({ profile, onLogout }) => {
     e.preventDefault();
     const form = new FormData(e.target);
     const data = Object.fromEntries(form.entries());
-    if (students.length >= school.max_students) return window.alert("Limit reached! Upgrade your plan.");
+    if (students.length >= school.max_students) return window.alert(`Limit reached! Your current free trial or plan only supports ${school.max_students} students.`);
     const pin = generatePIN();
     const autoAdm = generateAdmissionNumber();
     const { error } = await supabase.from('students').insert({
@@ -1136,18 +1130,42 @@ const Auth = ({ onLogin, onParent, onBack }) => {
         e.preventDefault(); 
         setLoading(true);
         try {
+            if (mode === 'central') {
+                // Hardcoded central admin login (reverting to a simple function for stability)
+                if (form.email === 'ca@admin.com' && form.password === '123456') {
+                    onLogin({ role: 'central' });
+                    return; // Exit on successful hardcoded login
+                } else {
+                    throw new Error("Invalid Central Admin credentials.");
+                }
+            }
+            
             if (mode === 'school_reg') {
-                const { data: pinData } = await supabase.from('subscription_pins').select('*').eq('code', form.pin).eq('is_used', false).maybeSingle();
-                if (!pinData) throw new Error('Invalid or Used PIN');
+                let student_limit = 5; // Default for Free Trial
+                let is_paid_pin = false;
+                
+                // Check if a PIN was entered for a paid plan
+                if (form.pin) {
+                    const { data: pinData } = await supabase.from('subscription_pins').select('*').eq('code', form.pin).eq('is_used', false).maybeSingle();
+                    if (!pinData) throw new Error('Invalid or Used Subscription PIN.');
+                    student_limit = pinData.student_limit;
+                    is_paid_pin = true;
+                }
                 
                 const { data: auth, error: authError } = await supabase.auth.signUp({ email: form.email, password: form.password });
                 if(authError) throw authError;
 
                 if(auth.user) {
-                    const { data: school } = await supabase.from('schools').insert({ owner_id: auth.user.id, name: form.name + "'s School", max_students: pinData.student_limit }).select().single();
+                    const { data: school } = await supabase.from('schools').insert({ owner_id: auth.user.id, name: form.name + "'s School", max_students: student_limit }).select().single();
                     await supabase.from('profiles').insert({ id: auth.user.id, full_name: form.name, role: 'admin', school_id: school.id });
-                    await supabase.from('subscription_pins').update({ is_used: true }).eq('id', pinData.id);
-                    window.alert("Registration Successful! Please Login."); setMode('login');
+                    
+                    if(is_paid_pin) {
+                      await supabase.from('subscription_pins').update({ is_used: true }).eq('code', form.pin);
+                      window.alert("Registration Successful! Welcome to your plan.");
+                    } else {
+                      window.alert(`Registration Successful! Welcome to your Free Trial (${student_limit} students).`);
+                    }
+                    setMode('login');
                 }
             } else if (mode === 'teacher_reg' || mode === 'admin_reg') {
                  const role = mode === 'teacher_reg' ? 'teacher' : 'admin';
@@ -1175,6 +1193,7 @@ const Auth = ({ onLogin, onParent, onBack }) => {
                     window.alert(`${role === 'admin' ? 'Admin' : 'Teacher'} Registered! Please Login.`); setMode('login');
                  }
             } else {
+                // Standard Supabase Login
                 const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
                 if (error) throw error;
             }
@@ -1195,13 +1214,14 @@ const Auth = ({ onLogin, onParent, onBack }) => {
                     <h1 className="text-2xl font-bold text-slate-800">SmartResultCards Portal</h1>
                 </div>
                 <div className="flex flex-wrap justify-center gap-4 mb-6 text-xs font-bold border-b pb-2">
-                    {['login', 'school_reg', 'teacher_reg', 'admin_reg'].map(m => <button key={m} onClick={()=>setMode(m)} className={`capitalize pb-1 ${mode===m?'text-blue-600 border-b-2 border-blue-600':''}`}>{m.replace('school_reg', 'Start School').replace('teacher_reg', 'Join (Tutor)').replace('admin_reg', 'Join (Admin)').replace('_', ' ')}</button>)}
+                    {['login', 'school_reg', 'teacher_reg', 'admin_reg'].map(m => <button key={m} onClick={()=>setMode(m)} className={`capitalize pb-1 ${mode===m?'text-blue-600 border-b-2 border-blue-600':''}`}>{m.replace('school_reg', 'Start School (Trial/Paid)').replace('teacher_reg', 'Join (Tutor)').replace('admin_reg', 'Join (Admin)').replace('_', ' ')}</button>)}
                 </div>
+                {mode === 'school_reg' && <div className="bg-yellow-50 p-3 rounded mb-4 text-xs">**Free Trial:** Fill out the form *without* a Subscription PIN for a 5-student account.</div>}
                 <form onSubmit={handleAuth} className="space-y-4">
-                    {(mode.includes('reg')) && <input placeholder="Full Name (Required for Reg)" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, name:e.target.value})} required={mode!=='login'} />}
+                    {(mode.includes('reg') || mode === 'central') && <input placeholder="Full Name (Required for Reg)" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, name:e.target.value})} required={mode!=='login' && mode!=='central'} />}
                     <input type="email" placeholder="Email Address" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, email:e.target.value})} required />
                     <input type="password" placeholder="Password" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, password:e.target.value})} required />
-                    {mode === 'school_reg' && <input placeholder="Subscription PIN" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, pin:e.target.value})} required />}
+                    {mode === 'school_reg' && <input placeholder="Subscription PIN (Optional for Free Trial)" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, pin:e.target.value})} />}
                     {mode === 'teacher_reg' && <input placeholder="School ID (Ask Admin)" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, schoolCode:e.target.value})} required />}
                     {mode === 'admin_reg' && <input placeholder="Invite Code (From Admin)" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, schoolCode:e.target.value})} required />}
                     <button disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded font-bold transition flex justify-center">{loading ? <Loader2 className="animate-spin"/> : 'Access Portal'}</button>
@@ -1210,6 +1230,13 @@ const Auth = ({ onLogin, onParent, onBack }) => {
                     <div className="mt-6 pt-4 border-t">
                         <button onClick={onParent} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded font-bold flex items-center justify-center gap-2 mb-3"><User size={20}/> Check Student Result</button>
                         <button onClick={onBack} className="w-full text-center text-sm text-gray-500 hover:text-gray-800">Back to Home</button>
+                        <button onClick={()=>setMode('central')} className="text-xs text-gray-300 mt-4 mx-auto block">Central Admin</button>
+                    </div>
+                )}
+                {mode === 'central' && (
+                    <div className="mt-6 pt-4 border-t">
+                        <div className="bg-red-50 p-3 text-sm rounded mb-3">**CA Credentials: Email: `ca@admin.com`, Pass: `123456`**</div>
+                        <button onClick={()=>setMode('login')} className="w-full text-center text-sm text-gray-500 hover:text-gray-800">Back to Regular Login</button>
                     </div>
                 )}
             </div>
@@ -1320,28 +1347,26 @@ const App = () => {
   useEffect(() => {
     if (session) {
       const fetchProfile = async () => {
-        // NOTE: Central admin does not have a profile entry since it bypasses Supabase auth for login.
-        // If a central admin is logged in (session is null), profile will be null, and the view logic handles it.
-        // For non-central admin users, this fetches their profile.
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-        setProfile(data); 
+        // Check if data is not null before setting profile
+        if (data) {
+          setProfile(data); 
+        } else {
+            // Handle case where session exists but profile fetch fails (e.g., deleted profile)
+            // Or where a central admin has manually logged out from the central view and supabase session is null
+            // For now, assume if session exists, we should have a profile or the app will route to login.
+        }
         setLoading(false);
       };
-      // Only attempt to fetch profile if session is present and we're not explicitly in 'central' view
-      // This is a safety check to prevent needless DB calls after a successful central login.
-      if (view !== 'central') {
-        fetchProfile();
-      } else {
-        setLoading(false);
-      }
+      fetchProfile();
     }
-  }, [session, view]);
+  }, [session]);
 
   if (loading) return <div className="h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-blue-600" size={48}/></div>;
 
-  // If App view is 'central', handle the hardcoded admin case
-  if (view === 'central') {
-    // This is the successful central admin login path
+  // Manual Check for Central Admin after successful hardcoded login in Auth component
+  if (session === null && profile === null && view === 'central') {
+    // This is the successful central admin login path which bypasses Supabase auth
     const centralAdminProfile = { id: 'central-admin', full_name: 'Super Admin', role: 'central' };
     return <CentralAdmin profile={centralAdminProfile} onLogout={() => setView('landing')} />;
   }
@@ -1355,11 +1380,10 @@ const App = () => {
   }
 
   // Public View Routing
-  if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} onCentralAdminClick={() => setView('central_login')} />;
+  if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} />; // Removed onCentralAdminClick
   if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;
-  if (view === 'central_login') return <CentralAdminLogin onLoginSuccess={() => setView('central')} onBack={() => setView('landing')} />; 
   
-  // Auth handles regular Supabase login/reg
+  // Auth handles all login/reg, including the hidden central admin login mode.
   return <Auth onLogin={() => setView('dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} />;
 };
 

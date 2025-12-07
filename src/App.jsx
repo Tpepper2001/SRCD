@@ -1024,7 +1024,7 @@ const Auth = ({ onLogin, onParent, onBack }) => {
         e.preventDefault(); setLoading(true);
         try {
             if (mode === 'central') {
-                if (form.email === 'oluwatoyin' && form.password === 'Funmilola') onLogin({ role: 'central' });
+                if (form.email === 'oluwatoyin@admin.com' && form.password === 'Funmilola') onLogin({ role: 'central' });
             } else if (mode === 'school_reg') {
                 const { data: pinData } = await supabase.from('subscription_pins').select('*').eq('code', form.pin).eq('is_used', false).single();
                 if (!pinData) throw new Error('Invalid or Used PIN');

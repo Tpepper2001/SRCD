@@ -5,10 +5,12 @@ import {
 } from '@react-pdf/renderer';
 import {
   LayoutDashboard, LogOut, Loader2, Plus, School, User, Download,
-  X, Eye, Trash2, ShieldCheck, Save, Menu, Upload, Users, Key
+  X, Eye, Trash2, ShieldCheck, Save, Menu, Upload, Users, Key, Copy,
+  CheckCircle, FileText, Calculator, Smartphone, Shield, ArrowRight, Star
 } from 'lucide-react';
 
 // ==================== SUPABASE CONFIG ====================
+// ideally move these to .env in production
 const supabaseUrl = 'https://xtciiatfetqecsfxoicq.supabase.co'; 
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y2lpYXRmZXRxZWNzZnhvaWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDEyMDIsImV4cCI6MjA4MDYxNzIwMn0.81K9w-XbCHWRWmKkq3rcJHxslx3hs5mGCSNIvyJRMuw'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -78,7 +80,204 @@ const useAutoSave = (callback, delay = 2000) => {
   return { save: trigger, saving };
 };
 
-// ==================== PDF STYLES ====================
+// ==================== LANDING PAGE COMPONENT ====================
+const LandingPage = ({ onLoginClick }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if(el) el.scrollIntoView({ behavior: 'smooth' });
+    setIsMenuOpen(false);
+  };
+
+  const FeatureCard = ({ icon, title, desc }) => (
+    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition border border-slate-100">
+      <div className="mb-4 bg-slate-50 w-12 h-12 rounded-lg flex items-center justify-center">
+        {icon}
+      </div>
+      <h3 className="font-bold text-lg mb-2 text-slate-900">{title}</h3>
+      <p className="text-slate-600 text-sm">{desc}</p>
+    </div>
+  );
+
+  const PricingItem = ({ text }) => (
+    <li className="flex items-center gap-2 text-sm text-slate-600">
+      <CheckCircle size={16} className="text-green-500" />
+      {text}
+    </li>
+  );
+
+  return (
+    <div className="font-sans text-slate-800 bg-white overflow-x-hidden">
+      {/* Nav */}
+      <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-2">
+              <div className="bg-blue-600 p-1.5 rounded-lg">
+                <FileText className="text-white h-6 w-6" />
+              </div>
+              <span className="font-bold text-xl tracking-tight text-slate-900">
+                SmartResultCards<span className="text-blue-600">.ng</span>
+              </span>
+            </div>
+            
+            <div className="hidden md:flex items-center space-x-8">
+              <button onClick={() => scrollToSection('features')} className="text-slate-600 hover:text-blue-600 font-medium">Features</button>
+              <button onClick={() => scrollToSection('how-it-works')} className="text-slate-600 hover:text-blue-600 font-medium">How it Works</button>
+              <button onClick={() => scrollToSection('pricing')} className="text-slate-600 hover:text-blue-600 font-medium">Pricing</button>
+              <button onClick={onLoginClick} className="text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">Login</button>
+              <button onClick={onLoginClick} className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/20">Get Started</button>
+            </div>
+
+            <div className="md:hidden flex items-center">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-600">
+                {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {isMenuOpen && (
+          <div className="md:hidden bg-white border-b border-slate-200 p-4 space-y-4">
+            <button onClick={() => scrollToSection('features')} className="block w-full text-left font-medium p-2 hover:bg-gray-50 rounded">Features</button>
+            <button onClick={() => scrollToSection('pricing')} className="block w-full text-left font-medium p-2 hover:bg-gray-50 rounded">Pricing</button>
+            <button onClick={onLoginClick} className="block w-full text-center bg-blue-100 text-blue-700 font-bold py-3 rounded-lg">Login to Portal</button>
+            <button onClick={onLoginClick} className="block w-full text-center bg-blue-600 text-white font-bold py-3 rounded-lg">Create School Account</button>
+          </div>
+        )}
+      </nav>
+
+      {/* Hero */}
+      <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-blue-50 to-white">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full font-semibold text-sm mb-6">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            </span>
+            Trusted by 100+ Nigerian Schools
+          </div>
+          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
+            Professional Report Cards for <br/>
+            <span className="text-blue-600">Nigerian Schools</span>
+          </h1>
+          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-8">
+            Stop wasting weeks on manual calculation. Create, manage, and distribute beautiful, WAEC-compliant student reports in minutes—not hours.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button onClick={onLoginClick} className="bg-blue-600 text-white text-lg px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-2">
+              Start Free Trial <ArrowRight size={20} />
+            </button>
+          </div>
+          
+          <div className="mt-16 relative mx-auto max-w-5xl">
+            <div className="bg-slate-900 rounded-xl shadow-2xl p-2 md:p-4 border-4 border-slate-200">
+               <div className="bg-slate-800 rounded h-64 md:h-96 flex items-center justify-center text-slate-500 flex-col">
+                    <LayoutDashboard size={48} className="mb-4 opacity-50"/>
+                    <p>Dashboard & PDF Result Preview</p>
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Everything You Need</h2>
+            <p className="text-slate-600 mt-4 max-w-2xl mx-auto">We built this specifically for the Nigerian syllabus.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FeatureCard icon={<Calculator className="text-blue-600" />} title="Automated Grading" desc="Enter scores, and we handle Totals, Grades (A-F), and Remarks automatically." />
+             <FeatureCard icon={<FileText className="text-green-600" />} title="Professional PDFs" desc="Generate branded PDF reports with your school logo, address, and signature." />
+            <FeatureCard icon={<Smartphone className="text-purple-600" />} title="Parent Portal" desc="Parents can check results online using a secure PIN." />
+            <FeatureCard icon={<Users className="text-orange-600" />} title="Teacher Roles" desc="Form teachers enter scores, Principals approve them." />
+            <FeatureCard icon={<CheckCircle className="text-teal-600" />} title="Behavioral Analysis" desc="Rate student psychomotor and affective traits easily." />
+            <FeatureCard icon={<Shield className="text-indigo-600" />} title="Secure Data" desc="Your school data is encrypted and backed up daily." />
+          </div>
+        </div>
+      </section>
+
+      {/* How it Works */}
+      <section id="how-it-works" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-slate-900">Go Live in 3 Simple Steps</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold border-4 border-white shadow-lg">1</div>
+              <h3 className="text-xl font-bold mb-2">Register School</h3>
+              <p className="text-slate-600">Create your account and upload your school logo.</p>
+            </div>
+            <div>
+              <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold border-4 border-white shadow-lg">2</div>
+              <h3 className="text-xl font-bold mb-2">Add Data</h3>
+              <p className="text-slate-600">Add students and teachers. Teachers log in to input scores.</p>
+            </div>
+            <div>
+              <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold border-4 border-white shadow-lg">3</div>
+              <h3 className="text-xl font-bold mb-2">Generate Reports</h3>
+              <p className="text-slate-600">Click one button to generate and print PDFs.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-slate-900">Simple, Transparent Pricing</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white p-8 rounded-2xl shadow border border-slate-100 hover:border-blue-200 transition">
+              <h3 className="text-xl font-bold text-slate-900">Starter</h3>
+              <div className="my-4"><span className="text-4xl font-extrabold text-slate-900">₦25k</span><span className="text-slate-500">/term</span></div>
+              <ul className="space-y-3 mb-8"><PricingItem text="Up to 100 Students" /><PricingItem text="5 Teachers" /><PricingItem text="PDF Generation" /></ul>
+              <button onClick={onLoginClick} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50">Select Plan</button>
+            </div>
+
+            <div className="bg-slate-900 p-8 rounded-2xl shadow-xl transform md:-translate-y-4 border border-slate-800 relative">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-500 text-white px-4 py-1 rounded-full text-xs font-bold tracking-wide">POPULAR</div>
+              <h3 className="text-xl font-bold text-white">Standard</h3>
+              <div className="my-4"><span className="text-4xl font-extrabold text-white">₦45k</span><span className="text-slate-400">/term</span></div>
+              <ul className="space-y-3 mb-8 text-white"><PricingItem text="Up to 300 Students" /><PricingItem text="Unlimited Teachers" /><PricingItem text="Parent Portal" /><PricingItem text="Custom Branding" /></ul>
+              <button onClick={onLoginClick} className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700">Select Plan</button>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow border border-slate-100 hover:border-blue-200 transition">
+              <h3 className="text-xl font-bold text-slate-900">Premium</h3>
+              <div className="my-4"><span className="text-4xl font-extrabold text-slate-900">₦75k</span><span className="text-slate-500">/term</span></div>
+              <ul className="space-y-3 mb-8"><PricingItem text="Up to 1000 Students" /><PricingItem text="Unlimited Staff" /><PricingItem text="Priority Support" /></ul>
+              <button onClick={onLoginClick} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50">Select Plan</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-4 text-white">
+            <FileText />
+            <span className="font-bold text-xl">SmartResultCards.com.ng</span>
+          </div>
+          <p className="text-sm">The #1 Result Processing System for Nigerian Schools.</p>
+          <div className="mt-8 text-xs">
+            © {new Date().getFullYear()} SmartResultCards. All rights reserved.
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+// ==================== PDF REPORT COMPONENT ====================
 const pdfStyles = StyleSheet.create({
   page: { padding: 30, fontFamily: 'Helvetica', fontSize: 9, color: '#333' },
   watermarkContainer: {
@@ -116,7 +315,8 @@ const pdfStyles = StyleSheet.create({
   footerContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 30 },
   signatureBox: { width: '40%', alignItems: 'center', paddingTop: 5, borderTopWidth: 1, borderTopColor: '#94a3b8', height: 60, justifyContent: 'flex-end' },
   signatureImage: { height: 40, width: 100, objectFit: 'contain', marginBottom: 2 },
-  signatureText: { fontSize: 8, color: '#64748b', textTransform: 'uppercase' }
+  signatureText: { fontSize: 8, color: '#64748b', textTransform: 'uppercase' },
+  brandingFooter: { position: 'absolute', bottom: 10, left: 0, right: 0, textAlign: 'center', fontSize: 7, color: '#cbd5e1' }
 });
 
 const ResultPDF = ({ school, student, results, classInfo, comments, behaviors = [], reportType = 'full', logoBase64, principalSigBase64, teacherSigBase64 }) => {
@@ -228,6 +428,7 @@ const ResultPDF = ({ school, student, results, classInfo, comments, behaviors = 
             </View>
             )}
         </View>
+        <Text style={pdfStyles.brandingFooter}>Generated by SmartResultCards.com.ng</Text>
       </Page>
     </Document>
   );
@@ -254,10 +455,9 @@ const SchoolAdmin = ({ profile, onLogout }) => {
     setLoading(true);
     const { data: s } = await supabase.from('schools').select('*').eq('owner_id', profile.id).single();
     if(!s && profile.school_id) {
-       // Handle co-admins
        const { data: subS } = await supabase.from('schools').select('*').eq('id', profile.school_id).single();
        setSchool(subS);
-       await loadRelated(subS.id);
+       if(subS) await loadRelated(subS.id);
     } else {
        setSchool(s);
        if(s) await loadRelated(s.id);
@@ -334,9 +534,7 @@ const SchoolAdmin = ({ profile, onLogout }) => {
       const name = fd.get('name');
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       
-      const currentInvites = school.admin_invites || []; // Using a JSONB column in 'schools' for simplicity
-      // Schema needs: schools table has a column 'admin_invites' type jsonb default []
-      
+      const currentInvites = school.admin_invites || [];
       const newInvite = { email, name, code, created_at: new Date().toISOString() };
       const updatedInvites = [...currentInvites, newInvite];
 
@@ -346,9 +544,7 @@ const SchoolAdmin = ({ profile, onLogout }) => {
           e.target.reset();
           fetchSchoolData();
       } else {
-          // If the column doesn't exist, we fallback or handle error. 
-          // Assuming schema flexibility or JSON column exists.
-          window.alert("Error creating invite (Ensure DB has admin_invites column): " + error.message);
+          window.alert("Error creating invite: " + error.message);
       }
   };
 
@@ -402,13 +598,11 @@ const SchoolAdmin = ({ profile, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans flex-col md:flex-row">
-      {/* Mobile Header */}
       <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md z-20 sticky top-0">
           <h2 className="font-bold flex items-center gap-2"><School size={20}/> Admin</h2>
           <button onClick={() => setSidebarOpen(!sidebarOpen)}><Menu /></button>
       </div>
 
-      {/* Sidebar */}
       <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:relative z-10 inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col p-4 transition duration-200 ease-in-out`}>
         <div className="hidden md:flex items-center gap-2 font-bold text-xl mb-8"><School /> Admin Panel</div>
         <nav className="space-y-2 flex-1 mt-4 md:mt-0">
@@ -420,11 +614,8 @@ const SchoolAdmin = ({ profile, onLogout }) => {
         </nav>
         <button onClick={onLogout} className="flex items-center gap-2 text-red-400 mt-auto mb-4 md:mb-0"><LogOut size={18}/> Logout</button>
       </div>
-
-      {/* Overlay for mobile sidebar */}
       {sidebarOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-0 md:hidden" onClick={() => setSidebarOpen(false)}></div>}
 
-      {/* Main Content */}
       <div className="flex-1 p-4 md:p-8 overflow-y-auto">
         {activeTab === 'dashboard' && (
            <div>
@@ -441,7 +632,6 @@ const SchoolAdmin = ({ profile, onLogout }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white p-6 rounded shadow">
                     <h2 className="text-xl font-bold mb-4">Manage Admins</h2>
-                    <p className="text-sm text-gray-500 mb-4">Invite a colleague to be an admin. They will use the code to create their account.</p>
                     <form onSubmit={inviteAdmin} className="space-y-4">
                         <input name="name" placeholder="Colleague Name" className="w-full p-2 border rounded" required />
                         <input name="email" type="email" placeholder="Colleague Email" className="w-full p-2 border rounded" required />
@@ -450,31 +640,13 @@ const SchoolAdmin = ({ profile, onLogout }) => {
                     
                     <div className="mt-8">
                         <h3 className="font-bold border-b pb-2 mb-2">Pending Invites</h3>
-                        {(school?.admin_invites || []).length === 0 && <p className="text-sm text-gray-400">No pending invites.</p>}
                         {(school?.admin_invites || []).map((inv, i) => (
                              <div key={i} className="flex justify-between items-center bg-yellow-50 p-2 mb-2 rounded border border-yellow-200">
-                                 <div>
-                                     <p className="text-xs font-bold">{inv.name}</p>
-                                     <p className="text-xs">{inv.email}</p>
-                                 </div>
-                                 <div className="text-right">
-                                     <p className="text-lg font-mono font-bold text-blue-600">{inv.code}</p>
-                                 </div>
+                                 <div><p className="text-xs font-bold">{inv.name}</p><p className="text-xs">{inv.email}</p></div>
+                                 <div className="text-right"><p className="text-lg font-mono font-bold text-blue-600">{inv.code}</p></div>
                              </div>
                         ))}
                     </div>
-                </div>
-                <div className="bg-white p-6 rounded shadow">
-                    <h3 className="font-bold mb-4">Current Admins</h3>
-                    {admins.map(a => (
-                        <div key={a.id} className="p-3 border-b flex justify-between items-center">
-                            <div>
-                                <p className="font-bold">{a.full_name}</p>
-                                <p className="text-xs text-gray-500">{a.id === profile.id ? '(You)' : 'Co-Admin'}</p>
-                            </div>
-                            <User size={16} className="text-gray-400"/>
-                        </div>
-                    ))}
                 </div>
             </div>
         )}
@@ -482,7 +654,15 @@ const SchoolAdmin = ({ profile, onLogout }) => {
         {activeTab === 'info' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white p-6 rounded shadow">
-                    <h2 className="text-xl font-bold mb-4 border-b pb-2">School Details</h2>
+                    <div className="bg-blue-50 border border-blue-200 p-4 rounded mb-6">
+                        <h3 className="text-blue-800 font-bold text-sm mb-1 uppercase">Teacher Registration Code</h3>
+                        <div className="flex items-center gap-2">
+                            <code className="bg-white px-3 py-2 rounded border border-blue-200 font-mono text-lg font-bold select-all flex-1 text-center overflow-x-auto">{school?.id}</code>
+                            <button onClick={() => {navigator.clipboard.writeText(school.id); window.alert('Copied!');}} className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"><Copy size={18}/></button>
+                        </div>
+                    </div>
+
+                    <h2 className="text-xl font-bold mb-4 border-b pb-2">Edit School Details</h2>
                     <form onSubmit={updateSchool} className="space-y-4">
                         <div><label className="text-xs font-bold text-gray-500">SCHOOL NAME</label><input name="name" defaultValue={school?.name} className="w-full p-2 border rounded" /></div>
                         <div><label className="text-xs font-bold text-gray-500">ADDRESS</label><input name="address" defaultValue={school?.address} className="w-full p-2 border rounded" placeholder="Street Address, State" /></div>
@@ -635,7 +815,7 @@ const TeacherDashboard = ({ profile, onLogout }) => {
     setSubjects(sub || []);
     const { data: stu } = await supabase.from('students').select('*, classes(profiles(signature_url))').eq('class_id', classId).order('name');
     setStudents(stu || []);
-    setSidebarOpen(false); // Close sidebar on mobile on select
+    setSidebarOpen(false); 
   };
 
   const uploadSignature = async (e) => {
@@ -663,7 +843,7 @@ const TeacherDashboard = ({ profile, onLogout }) => {
     setComments({ full: comm?.tutor_comment || "", mid: comm?.midterm_tutor_comment || "" });
     setBehaviors(comm?.behaviors ? JSON.parse(comm.behaviors) : {});
     setSelectedStudent(student);
-    setSidebarOpen(false); // Close sidebar on mobile
+    setSidebarOpen(false); 
   };
 
   const updateScore = (subId, code, value, max) => {
@@ -835,7 +1015,7 @@ const TeacherDashboard = ({ profile, onLogout }) => {
 };
 
 // ==================== AUTH & PORTALS ====================
-const Auth = ({ onLogin, onParent }) => {
+const Auth = ({ onLogin, onParent, onBack }) => {
     const [mode, setMode] = useState('login'); 
     const [form, setForm] = useState({ email: '', password: '', name: '', pin: '', schoolCode: '' });
     const [loading, setLoading] = useState(false);
@@ -856,41 +1036,26 @@ const Auth = ({ onLogin, onParent }) => {
                     window.alert("Registration Successful! Please Login."); setMode('login');
                 }
             } else if (mode === 'teacher_reg' || mode === 'admin_reg') {
-                 // Logic for Staff Registration
                  const role = mode === 'teacher_reg' ? 'teacher' : 'admin';
                  let schoolId = null;
-
                  if (role === 'teacher') {
                      const { data: sch } = await supabase.from('schools').select('id').eq('id', form.schoolCode).single();
                      if (!sch) throw new Error('Invalid School Code');
                      schoolId = sch.id;
                  } else {
-                     // Check Admin Invite
-                     // Note: To be secure, we need to iterate schools to find who issued this code, or use a specific invites table.
-                     // Since we used a JSONB column on schools, we must query schools that contain this invite.
-                     // Supabase PostgREST allows searching JSON arrays.
                      const { data: schs } = await supabase.from('schools').select('*'); 
                      const targetSchool = schs?.find(s => (s.admin_invites || []).some(inv => inv.code === form.schoolCode && inv.email === form.email));
-                     
                      if (!targetSchool) throw new Error("Invalid Invite Code or Email mismatch.");
                      schoolId = targetSchool.id;
-
-                     // Remove invite logic would ideally be here, but we need auth first.
-                     // We will remove it after successful creation if possible, or leave it.
-                     // For this simple version, we proceed.
                  }
-
                  const { data: auth } = await supabase.auth.signUp({ email: form.email, password: form.password });
                  if(auth.user){
                     await supabase.from('profiles').insert({ id: auth.user.id, full_name: form.name, role: role, school_id: schoolId });
-                    
-                    // Cleanup invite if admin
                     if(role === 'admin') {
                         const { data: s } = await supabase.from('schools').select('admin_invites').eq('id', schoolId).single();
                         const updated = (s.admin_invites || []).filter(inv => inv.code !== form.schoolCode);
                         await supabase.from('schools').update({ admin_invites: updated }).eq('id', schoolId);
                     }
-
                     window.alert(`${role === 'admin' ? 'Admin' : 'Teacher'} Registered! Please Login.`); setMode('login');
                  }
             } else {
@@ -903,7 +1068,12 @@ const Auth = ({ onLogin, onParent }) => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
             <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md border-t-4 border-blue-600">
-                <div className="text-center mb-6"><div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3"><School className="text-blue-600" size={32} /></div><h1 className="text-2xl font-bold text-slate-800">Springforth Results</h1></div>
+                <div className="text-center mb-6">
+                    <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <School className="text-blue-600" size={32} />
+                    </div>
+                    <h1 className="text-2xl font-bold text-slate-800">SmartResultCards Portal</h1>
+                </div>
                 <div className="flex flex-wrap justify-center gap-4 mb-6 text-xs font-bold border-b pb-2">
                     {['login', 'school_reg', 'teacher_reg', 'admin_reg'].map(m => <button key={m} onClick={()=>setMode(m)} className={`capitalize pb-1 ${mode===m?'text-blue-600 border-b-2 border-blue-600':''}`}>{m.replace('school_reg', 'Start School').replace('teacher_reg', 'Join (Tutor)').replace('admin_reg', 'Join (Admin)').replace('_', ' ')}</button>)}
                 </div>
@@ -918,8 +1088,9 @@ const Auth = ({ onLogin, onParent }) => {
                 </form>
                 {mode === 'login' && (
                     <div className="mt-6 pt-4 border-t">
-                        <button onClick={onParent} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded font-bold flex items-center justify-center gap-2"><User size={20}/> Check Student Result</button>
-                        <button onClick={()=>setMode('central')} className="text-xs text-gray-300 mt-4 mx-auto block">Central Admin</button>
+                        <button onClick={onParent} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded font-bold flex items-center justify-center gap-2 mb-3"><User size={20}/> Check Student Result</button>
+                        <button onClick={onBack} className="w-full text-center text-sm text-gray-500 hover:text-gray-800">Back to Home</button>
+                        <button onClick={()=>setMode('central')} className="text-xs text-gray-300 mt-4 mx-auto block">Admin</button>
                     </div>
                 )}
             </div>
@@ -1002,13 +1173,22 @@ const CentralAdmin = ({ onLogout }) => {
 const App = () => {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [view, setView] = useState('auth');
+  const [view, setView] = useState('landing');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); if(!session) setLoading(false); });
+    supabase.auth.getSession().then(({ data: { session } }) => { 
+        setSession(session); 
+        if(!session) setLoading(false); 
+    });
+    
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session); if (!session) { setProfile(null); setView('auth'); setLoading(false); }
+      setSession(session); 
+      if (!session) { 
+          setProfile(null); 
+          setView('landing'); 
+          setLoading(false); 
+      }
     });
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -1017,7 +1197,8 @@ const App = () => {
     if (session) {
       const fetchProfile = async () => {
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-        setProfile(data); setLoading(false);
+        setProfile(data); 
+        setLoading(false);
       };
       fetchProfile();
     }
@@ -1025,12 +1206,21 @@ const App = () => {
 
   if (loading) return <div className="h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-blue-600" size={48}/></div>;
 
-  if (view === 'central') return <CentralAdmin onLogout={() => setView('auth')} />;
-  if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;
-  if (!session) return <Auth onLogin={(d) => setView(d.role === 'central' ? 'central' : 'dashboard')} onParent={() => setView('parent')} />;
-  if (!profile) return <div className="h-screen flex items-center justify-center text-red-500 font-bold">Profile Error. Please contact support.</div>;
+  // If Logged in and Profile loaded, show SaaS Dashboard
+  if (session && profile) {
+      if (view === 'central') return <CentralAdmin onLogout={() => supabase.auth.signOut()} />; // Handling super admin special case
+      return profile.role === 'admin' 
+        ? <SchoolAdmin profile={profile} onLogout={() => supabase.auth.signOut()} /> 
+        : <TeacherDashboard profile={profile} onLogout={() => supabase.auth.signOut()} />;
+  }
 
-  return profile.role === 'admin' ? <SchoolAdmin profile={profile} onLogout={() => supabase.auth.signOut()} /> : <TeacherDashboard profile={profile} onLogout={() => supabase.auth.signOut()} />;
+  // If Public View
+  if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} />;
+  if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;
+  if (view === 'central') return <CentralAdmin onLogout={() => setView('auth')} />;
+  
+  // Auth handles login/reg
+  return <Auth onLogin={(d) => setView(d.role === 'central' ? 'central' : 'dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} />;
 };
 
 export default App;

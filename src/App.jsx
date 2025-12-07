@@ -1,11 +1,3 @@
-You are correct. The logic for the hardcoded central admin login in the `Auth` component only calls `onLogin` (which switches the view to 'central') if the credentials match, but it **doesn't set `setLoading(false)`** in that successful path, and then it immediately hits the `finally` block which sets `setLoading(false)`.
-
-However, the main issue for a **blank screen/hang** after a successful admin login is usually that the `onLogin` handler completes, but the `Auth` component remains in its success state and the parent `App` component needs to re-render to pick up the new view.
-
-Let's modify the `handleAuth` function in the `Auth` component to ensure `setLoading(false)` is explicitly called *only* on error or to reset the state *after* the successful action is complete, ensuring a smooth transition.
-
-The central admin logic in `handleAuth` is the specific area to check:
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {

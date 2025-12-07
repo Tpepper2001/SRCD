@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 
 // ==================== SUPABASE CONFIG ====================
-// ideally move these to .env in production
 const supabaseUrl = 'https://xtciiatfetqecsfxoicq.supabase.co'; 
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y2lpYXRmZXRxZWNzZnhvaWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDEyMDIsImV4cCI6MjA4MDYxNzIwMn0.81K9w-XbCHWRWmKkq3rcJHxslx3hs5mGCSNIvyJRMuw'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -81,7 +80,7 @@ const useAutoSave = (callback, delay = 2000) => {
 };
 
 // ==================== LANDING PAGE COMPONENT ====================
-const LandingPage = ({ onLoginClick }) => {
+const LandingPage = ({ onNavigate }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const CONTACT_NUMBER = '+2348102440375';
@@ -135,8 +134,8 @@ const LandingPage = ({ onLoginClick }) => {
               <button onClick={() => scrollToSection('features')} className="text-slate-600 hover:text-blue-600 font-medium">Features</button>
               <button onClick={() => scrollToSection('how-it-works')} className="text-slate-600 hover:text-blue-600 font-medium">How it Works</button>
               <button onClick={() => scrollToSection('pricing')} className="text-slate-600 hover:text-blue-600 font-medium">Pricing</button>
-              <button onClick={onLoginClick} className="text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">Login</button>
-              <button onClick={onLoginClick} className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/20">Get Started</button>
+              <button onClick={() => onNavigate('login')} className="text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">Login</button>
+              <button onClick={() => onNavigate('school_reg')} className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/20">Get Started</button>
             </div>
 
             <div className="md:hidden flex items-center">
@@ -151,8 +150,8 @@ const LandingPage = ({ onLoginClick }) => {
           <div className="md:hidden bg-white border-b border-slate-200 p-4 space-y-4">
             <button onClick={() => scrollToSection('features')} className="block w-full text-left font-medium p-2 hover:bg-gray-50 rounded">Features</button>
             <button onClick={() => scrollToSection('pricing')} className="block w-full text-left font-medium p-2 hover:bg-gray-50 rounded">Pricing</button>
-            <button onClick={onLoginClick} className="block w-full text-center bg-blue-100 text-blue-700 font-bold py-3 rounded-lg">Login to Portal</button>
-            <button onClick={onLoginClick} className="block w-full text-center bg-blue-600 text-white font-bold py-3 rounded-lg">Create School Account</button>
+            <button onClick={() => onNavigate('login')} className="block w-full text-center bg-blue-100 text-blue-700 font-bold py-3 rounded-lg">Login to Portal</button>
+            <button onClick={() => onNavigate('school_reg')} className="block w-full text-center bg-blue-600 text-white font-bold py-3 rounded-lg">Create School Account</button>
           </div>
         )}
       </nav>
@@ -183,7 +182,7 @@ const LandingPage = ({ onLoginClick }) => {
         {/* CTA Button */}
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button
-            onClick={onLoginClick}
+            onClick={() => onNavigate('school_reg')}
             className="bg-blue-600 text-white text-lg px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-2"
           >
             Start Free Trial <ArrowRight size={20} />
@@ -1121,8 +1120,8 @@ const CentralAdminLogin = ({ onLoginSuccess, onBack }) => {
     );
 };
 
-const Auth = ({ onLogin, onParent, onBack }) => {
-    const [mode, setMode] = useState('login'); 
+const Auth = ({ onLogin, onParent, onBack, initialMode = 'login' }) => {
+    const [mode, setMode] = useState(initialMode); 
     const [form, setForm] = useState({ email: '', password: '', name: '', pin: '', schoolCode: '' });
     const [loading, setLoading] = useState(false);
 
@@ -1308,6 +1307,7 @@ const App = () => {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [view, setView] = useState('landing');
+  const [authMode, setAuthMode] = useState('login'); // Track which auth tab to open
   const [loading, setLoading] = useState(true);
 
   // Check URL on mount for hidden Central Admin path
@@ -1316,6 +1316,9 @@ const App = () => {
         setView('central_login');
     }
   }, []);
+
+  const viewRef = useRef(view);
+  useEffect(() => { viewRef.current = view; }, [view]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => { 
@@ -1328,15 +1331,19 @@ const App = () => {
       setSession(session); 
       if (!session) { 
           setProfile(null); 
-          // Do not override central admin views on logout/auth state change
-          if (view !== 'central_login' && view !== 'central_dashboard') {
+          // Use ref to check current view safely without adding dependency loop
+          const currentView = viewRef.current;
+          
+          // Only force redirect to landing if we were previously logged in or in dashboard mode
+          // Do NOT redirect if we are currently on the Auth screen or Parent Portal
+          if (currentView !== 'auth' && currentView !== 'parent' && currentView !== 'central_login' && currentView !== 'central_dashboard') {
              setView('landing'); 
           }
           setLoading(false); 
       }
     });
     return () => listener.subscription.unsubscribe();
-  }, [view]);
+  }, []); // Empty dependency array fixed the loop
 
   useEffect(() => {
     if (session) {
@@ -1351,11 +1358,8 @@ const App = () => {
     }
   }, [session]);
 
-  // Handle explicit logout from Central Admin to reset URL
   const handleCentralLogout = () => {
-      // Clear specific central admin state
       setView('landing');
-      // Reset URL to root without reloading page
       window.history.pushState({}, '', '/');
   };
 
@@ -1364,29 +1368,26 @@ const App = () => {
       window.history.pushState({}, '', '/');
   }
 
+  const navigateToAuth = (mode) => {
+      setAuthMode(mode || 'login');
+      setView('auth');
+  }
+
   if (loading) return <div className="h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-blue-600" size={48}/></div>;
 
-  // Central Admin Flows (Bypass Supabase)
-  if (view === 'central_login') {
-      return <CentralAdminLogin onLoginSuccess={() => setView('central_dashboard')} onBack={handleCentralBack} />;
-  }
-  if (view === 'central_dashboard') {
-      return <CentralAdmin onLogout={handleCentralLogout} />;
-  }
+  if (view === 'central_login') return <CentralAdminLogin onLoginSuccess={() => setView('central_dashboard')} onBack={handleCentralBack} />;
+  if (view === 'central_dashboard') return <CentralAdmin onLogout={handleCentralLogout} />;
 
-  // If Logged in via Supabase (session is NOT null) AND Profile loaded, show SaaS Dashboard
   if (session && profile) {
       return profile.role === 'admin' 
         ? <SchoolAdmin profile={profile} onLogout={() => supabase.auth.signOut()} /> 
         : <TeacherDashboard profile={profile} onLogout={() => supabase.auth.signOut()} />;
   }
 
-  // Public View Routing
-  if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} />; 
+  if (view === 'landing') return <LandingPage onNavigate={navigateToAuth} />; 
   if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;
   
-  // Auth component no longer shows Central Admin options
-  return <Auth onLogin={() => setView('dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} />;
+  return <Auth onLogin={() => setView('dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} initialMode={authMode} />;
 };
 
 export default App;

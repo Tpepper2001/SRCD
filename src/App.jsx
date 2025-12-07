@@ -232,8 +232,7 @@ const LandingPage = ({ onLoginClick }) => {
                   <div className="w-full bg-blue-600 rounded-t h-[75%]"></div>
                   <div className="w-full bg-indigo-500 rounded-t h-[90%]"></div>
                 </div>
-  
-              </div>
+              </div> 
             </div>
           </div>
 
@@ -1221,7 +1220,7 @@ const CentralAdmin = ({ onLogout }) => {
                 <h1 className="text-2xl font-bold">Central Admin</h1>
                 <button onClick={onLogout} className="text-red-400 border border-red-400 px-3 py-1 rounded hover:bg-red-400 hover:text-white transition">Logout</button>
             </div>
-            <button onClick={async()=>{ await supabase.from('subscription_pins').insert({ code: `SUB-${Math.floor(Math.random()*90000)}` }); window.location.reload(); }} className="bg-blue-600 px-6 py-3 rounded font-bold mb-6 hover:bg-blue-500 transition block w-full md:w-auto">+ Generate New PIN</button>
+            <button onClick={async()=>{ await supabase.from('subscription_pins').insert({ code: `SUB-${Math.floor(Math.random()*90000)}`, student_limit: 300 }); window.location.reload(); }} className="bg-blue-600 px-6 py-3 rounded font-bold mb-6 hover:bg-blue-500 transition block w-full md:w-auto">+ Generate New PIN</button>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {pins.map(p=><div key={p.id} className={`p-4 rounded border ${p.is_used ? 'bg-slate-800 border-slate-700 text-gray-500' : 'bg-green-900 border-green-700 text-green-100'}`}><p className="text-xl font-bold">{p.code}</p><p className="text-xs mt-1">{p.is_used?'USED':'ACTIVE'}</p></div>)}
             </div>
@@ -1268,7 +1267,7 @@ const App = () => {
 
   // If Logged in and Profile loaded, show SaaS Dashboard
   if (session && profile) {
-      if (view === 'central') return <CentralAdmin onLogout={() => supabase.auth.signOut()} />; // Handling super admin special case
+      if (view === 'central' || profile.role === 'central') return <CentralAdmin onLogout={() => supabase.auth.signOut()} />; // Handling super admin special case
       return profile.role === 'admin' 
         ? <SchoolAdmin profile={profile} onLogout={() => supabase.auth.signOut()} /> 
         : <TeacherDashboard profile={profile} onLogout={() => supabase.auth.signOut()} />;
@@ -1277,7 +1276,7 @@ const App = () => {
   // If Public View
   if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} />;
   if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;
-  if (view === 'central') return <CentralAdmin onLogout={() => setView('auth')} />;
+  // 'central' view must only be reachable through the Auth component's hardcoded login
   
   // Auth handles login/reg
   return <Auth onLogin={(d) => setView(d.role === 'central' ? 'central' : 'dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} />;

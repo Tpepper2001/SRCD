@@ -12,7 +12,7 @@ import {
 // ==================== SUPABASE CONFIG ====================
 // ideally move these to .env in production
 const supabaseUrl = 'https://xtciiatfetqecsfxoicq.supabase.co'; 
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y2lpYXRmZXRxZWNzZnhvaWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDEyMDIsImV4cCI6MjA4MDYxNzIwMn0.81K9w-XbCHWRWmKkq3rcJHxslx3hs5mGCSNIvyJRMuw'; 
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y2lpYXRmZXRxZWNzZnhvaWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDEyMDIsImV4cCI6MjA4MDYxNzIwMn0.81K9w-XbCHWRWmKkq3rcJHxslx3hs5mM6CSNIvyJRMuw'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ==================== CONSTANTS & HELPERS ====================
@@ -1104,7 +1104,8 @@ const CentralAdminLogin = ({ onLoginSuccess, onBack }) => {
         
         // Hardcoded check
         if (email === expectedEmail && password === expectedPassword) {
-            onLoginSuccess(); // Changes App view to 'central'
+            // Note: Central Admin bypasses Supabase auth
+            onLoginSuccess(); // Correctly switches App view
         } else {
             window.alert('Invalid Central Admin credentials.');
             setLoading(false);
@@ -1319,19 +1320,35 @@ const App = () => {
   useEffect(() => {
     if (session) {
       const fetchProfile = async () => {
+        // NOTE: Central admin does not have a profile entry since it bypasses Supabase auth for login.
+        // If a central admin is logged in (session is null), profile will be null, and the view logic handles it.
+        // For non-central admin users, this fetches their profile.
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
         setProfile(data); 
         setLoading(false);
       };
-      fetchProfile();
+      // Only attempt to fetch profile if session is present and we're not explicitly in 'central' view
+      // This is a safety check to prevent needless DB calls after a successful central login.
+      if (view !== 'central') {
+        fetchProfile();
+      } else {
+        setLoading(false);
+      }
     }
-  }, [session]);
+  }, [session, view]);
 
   if (loading) return <div className="h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-blue-600" size={48}/></div>;
 
-  // If Logged in and Profile loaded, show SaaS Dashboard
+  // If App view is 'central', handle the hardcoded admin case
+  if (view === 'central') {
+    // This is the successful central admin login path
+    const centralAdminProfile = { id: 'central-admin', full_name: 'Super Admin', role: 'central' };
+    return <CentralAdmin profile={centralAdminProfile} onLogout={() => setView('landing')} />;
+  }
+
+  // If Logged in via Supabase (session is NOT null) AND Profile loaded, show SaaS Dashboard
   if (session && profile) {
-      if (profile.role === 'central') return <CentralAdmin onLogout={() => supabase.auth.signOut()} />; 
+      // Profile role check for regular users
       return profile.role === 'admin' 
         ? <SchoolAdmin profile={profile} onLogout={() => supabase.auth.signOut()} /> 
         : <TeacherDashboard profile={profile} onLogout={() => supabase.auth.signOut()} />;
@@ -1340,9 +1357,9 @@ const App = () => {
   // Public View Routing
   if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} onCentralAdminClick={() => setView('central_login')} />;
   if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;
-  if (view === 'central_login') return <CentralAdminLogin onLoginSuccess={() => setView('central')} onBack={() => setView('landing')} />; // New component and handler
+  if (view === 'central_login') return <CentralAdminLogin onLoginSuccess={() => setView('central')} onBack={() => setView('landing')} />; 
   
-  // Auth handles login/reg
+  // Auth handles regular Supabase login/reg
   return <Auth onLogin={() => setView('dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} />;
 };
 

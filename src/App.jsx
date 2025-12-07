@@ -1098,10 +1098,13 @@ const CentralAdminLogin = ({ onLoginSuccess, onBack }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-        // Hardcoded central admin login
-        if (email === 'oluwatoyin@admin.com' && password === 'Funmilola') {
-            // Note: Central Admin does not use Supabase auth, just an explicit view change
-            onLoginSuccess();
+
+        const expectedEmail = 'ca@admin.com'; 
+        const expectedPassword = '123456'; 
+        
+        // Hardcoded check
+        if (email === expectedEmail && password === expectedPassword) {
+            onLoginSuccess(); // Changes App view to 'central'
         } else {
             window.alert('Invalid Central Admin credentials.');
             setLoading(false);
@@ -1113,8 +1116,8 @@ const CentralAdminLogin = ({ onLoginSuccess, onBack }) => {
             <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md border-t-4 border-slate-900">
                 <h1 className="text-2xl font-bold text-center mb-6 text-slate-800 flex items-center justify-center gap-2"><Shield size={24}/> Central Admin Access</h1>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input type="email" placeholder="Email Address" className="w-full p-3 border rounded bg-gray-50" value={email} onChange={e=>setEmail(e.target.value)} required />
-                    <input type="password" placeholder="Password" className="w-full p-3 border rounded bg-gray-50" value={password} onChange={e=>setPassword(e.target.value)} required />
+                    <input type="email" placeholder="Email Address (ca@admin.com)" className="w-full p-3 border rounded bg-gray-50" value={email} onChange={e=>setEmail(e.target.value)} required />
+                    <input type="password" placeholder="Password (123456)" className="w-full p-3 border rounded bg-gray-50" value={password} onChange={e=>setPassword(e.target.value)} required />
                     <button disabled={loading} className="w-full bg-slate-900 hover:bg-slate-700 text-white py-3 rounded font-bold transition flex justify-center">{loading ? <Loader2 className="animate-spin"/> : 'Admin Login'}</button>
                 </form>
                 <button type="button" onClick={onBack} className="w-full text-center text-sm mt-4 text-gray-500 hover:text-gray-800">Back to Home</button>
@@ -1194,7 +1197,7 @@ const Auth = ({ onLogin, onParent, onBack }) => {
                     {['login', 'school_reg', 'teacher_reg', 'admin_reg'].map(m => <button key={m} onClick={()=>setMode(m)} className={`capitalize pb-1 ${mode===m?'text-blue-600 border-b-2 border-blue-600':''}`}>{m.replace('school_reg', 'Start School').replace('teacher_reg', 'Join (Tutor)').replace('admin_reg', 'Join (Admin)').replace('_', ' ')}</button>)}
                 </div>
                 <form onSubmit={handleAuth} className="space-y-4">
-                    {(mode.includes('reg') || mode === 'central') && <input placeholder="Full Name (Optional)" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, name:e.target.value})} />}
+                    {(mode.includes('reg')) && <input placeholder="Full Name (Required for Reg)" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, name:e.target.value})} required={mode!=='login'} />}
                     <input type="email" placeholder="Email Address" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, email:e.target.value})} required />
                     <input type="password" placeholder="Password" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, password:e.target.value})} required />
                     {mode === 'school_reg' && <input placeholder="Subscription PIN" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, pin:e.target.value})} required />}
@@ -1333,7 +1336,7 @@ const App = () => {
         ? <SchoolAdmin profile={profile} onLogout={() => supabase.auth.signOut()} /> 
         : <TeacherDashboard profile={profile} onLogout={() => supabase.auth.signOut()} />;
   }
-  
+
   // Public View Routing
   if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} onCentralAdminClick={() => setView('central_login')} />;
   if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;

@@ -1,3 +1,11 @@
+You are correct. The logic for the hardcoded central admin login in the `Auth` component only calls `onLogin` (which switches the view to 'central') if the credentials match, but it **doesn't set `setLoading(false)`** in that successful path, and then it immediately hits the `finally` block which sets `setLoading(false)`.
+
+However, the main issue for a **blank screen/hang** after a successful admin login is usually that the `onLogin` handler completes, but the `Auth` component remains in its success state and the parent `App` component needs to re-render to pick up the new view.
+
+Let's modify the `handleAuth` function in the `Auth` component to ensure `setLoading(false)` is explicitly called *only* on error or to reset the state *after* the successful action is complete, ensuring a smooth transition.
+
+The central admin logic in `handleAuth` is the specific area to check:
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
@@ -12,7 +20,7 @@ import {
 // ==================== SUPABASE CONFIG ====================
 // ideally move these to .env in production
 const supabaseUrl = 'https://xtciiatfetqecsfxoicq.supabase.co'; 
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y2lpYXRmZXRxZWNzZnhvaWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDEyMDIsImV4cCI6MjA4MDYxNzIwMn0.81K9w-XbCHWRWmKkq3rcJHxslx3hs5mGCSNIvyJRMuw'; 
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y2lpYXRmZXRxZWNzZnhvaWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDEyMDIsImV4cCI6MjA4MDYxNzIwMn0.81K9w-XbCHWRWmKkq3rcJHxslx3hs5mM6CSNIvyJRMuw'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ==================== CONSTANTS & HELPERS ====================
@@ -1089,12 +1097,17 @@ const Auth = ({ onLogin, onParent, onBack }) => {
     const [loading, setLoading] = useState(false);
 
     const handleAuth = async (e) => {
-        e.preventDefault(); setLoading(true);
+        e.preventDefault(); 
+        setLoading(true);
         try {
             if (mode === 'central') {
-                // Hardcoded central admin login for demonstration
-                if (form.email === 'oluwatoyin@admin.com' && form.password === 'Funmilola') onLogin({ role: 'central' });
-                else throw new Error("Invalid Central Admin credentials.");
+                if (form.email === 'oluwatoyin@admin.com' && form.password === 'Funmilola') {
+                    onLogin({ role: 'central' });
+                    setLoading(false); // <--- Explicitly turn off loading on successful admin login
+                    return; // EXIT HERE to prevent hitting finally/further logic
+                } else {
+                    throw new Error("Invalid Central Admin credentials.");
+                }
             } else if (mode === 'school_reg') {
                 const { data: pinData } = await supabase.from('subscription_pins').select('*').eq('code', form.pin).eq('is_used', false).maybeSingle();
                 if (!pinData) throw new Error('Invalid or Used PIN');
@@ -1140,6 +1153,7 @@ const Auth = ({ onLogin, onParent, onBack }) => {
         } catch (err) { 
             window.alert(err.message); 
         } finally { 
+            // Only runs if the function hasn't exited already (i.e., on error or Supabase login)
             setLoading(false); 
         }
     };
@@ -1157,7 +1171,7 @@ const Auth = ({ onLogin, onParent, onBack }) => {
                     {['login', 'school_reg', 'teacher_reg', 'admin_reg'].map(m => <button key={m} onClick={()=>setMode(m)} className={`capitalize pb-1 ${mode===m?'text-blue-600 border-b-2 border-blue-600':''}`}>{m.replace('school_reg', 'Start School').replace('teacher_reg', 'Join (Tutor)').replace('admin_reg', 'Join (Admin)').replace('_', ' ')}</button>)}
                 </div>
                 <form onSubmit={handleAuth} className="space-y-4">
-                    {(mode.includes('reg')) && <input placeholder="Full Name" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, name:e.target.value})} required />}
+                    {(mode.includes('reg') || mode === 'central') && <input placeholder="Full Name (Optional)" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, name:e.target.value})} />}
                     <input type="email" placeholder="Email Address" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, email:e.target.value})} required />
                     <input type="password" placeholder="Password" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, password:e.target.value})} required />
                     {mode === 'school_reg' && <input placeholder="Subscription PIN" className="w-full p-3 border rounded bg-gray-50" onChange={e=>setForm({...form, pin:e.target.value})} required />}
@@ -1241,13 +1255,13 @@ const CentralAdmin = ({ onLogout }) => {
                 <button onClick={onLogout} className="text-red-400 border border-red-400 px-3 py-1 rounded hover:bg-red-400 hover:text-white transition">Logout</button>
             </div>
             <button onClick={async()=>{ 
-                const limit = window.prompt("Enter student limit for this PIN (e.g., 100, 300, 1000):", "300");
+                const limit = window.prompt("Enter student limit for this PIN (100, 300, or 1000):", "300");
                 const student_limit = parseInt(limit) || 300;
                 await supabase.from('subscription_pins').insert({ code: `SUB-${Math.floor(Math.random()*90000)}`, student_limit }); 
                 window.location.reload(); 
             }} className="bg-blue-600 px-6 py-3 rounded font-bold mb-6 hover:bg-blue-500 transition block w-full md:w-auto">+ Generate New PIN</button>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {pins.map(p=><div key={p.id} className={`p-4 rounded border ${p.is_used ? 'bg-slate-800 border-slate-700 text-gray-500' : 'bg-green-900 border-green-700 text-green-100'}`}><p className="text-xl font-bold">{p.code}</p><p className="text-xs mt-1">{p.is_used?'USED':'ACTIVE'}</p></div>)}
+                {pins.map(p=><div key={p.id} className={`p-4 rounded border ${p.is_used ? 'bg-slate-800 border-slate-700 text-gray-500' : 'bg-green-900 border-green-700 text-green-100'}`}><p className="text-xl font-bold">{p.code}</p><p className="text-xs mt-1">Limit: {p.student_limit} - {p.is_used?'USED':'ACTIVE'}</p></div>)}
             </div>
         </div>
     );

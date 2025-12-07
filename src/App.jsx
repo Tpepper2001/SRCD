@@ -148,90 +148,99 @@ const LandingPage = ({ onLoginClick }) => {
         )}
       </nav>
 
-      {/* Hero */}
-      <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-blue-50 to-white">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full font-semibold text-sm mb-6">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-            </span>
-            Trusted by 100+ Nigerian Schools
+       <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-blue-50 to-white">
+      <div className="max-w-7xl mx-auto text-center">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full font-semibold text-sm mb-6">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+          </span>
+          Trusted by 100+ Nigerian Schools
+        </div>
+
+        {/* Heading */}
+        <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
+          Professional Report Cards for <br />
+          <span className="text-blue-600">Nigerian Schools</span>
+        </h1>
+
+        {/* Subheading */}
+        <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-8">
+          Stop wasting weeks on manual calculation. Create, manage, and distribute
+          beautiful, WAEC-compliant student reports in minutes—not hours.
+        </p>
+
+        {/* CTA Button */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <button
+            onClick={onLoginClick}
+            className="bg-blue-600 text-white text-lg px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-2"
+          >
+            Start Free Trial <ArrowRight size={20} />
+          </button>
+        </div>
+
+        {/* Abstract Browser Interface */}
+        <div className="relative mx-auto max-w-5xl mt-16">
+          <div className="bg-slate-900 rounded-xl shadow-2xl border-4 border-slate-200 overflow-hidden relative z-10">
+            {/* Browser Bar */}
+            <div className="bg-slate-800 p-3 flex items-center gap-2 border-b border-slate-700">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <div className="ml-4 bg-slate-900 px-4 py-1 rounded-full text-xs text-slate-400 font-mono flex-1 max-w-xs">
+                app.smartresultcards.com.ng/dashboard
+              </div>
+            </div>
+
+            {/* Abstract Dashboard UI */}
+            <div className="bg-slate-50 p-6 grid grid-cols-12 gap-6 h-64 md:h-96">
+              {/* Sidebar Mockup */}
+              <div className="hidden md:flex col-span-2 flex-col gap-3 border-r border-slate-200 pr-4">
+                <div className="h-8 bg-blue-600 rounded w-8 mb-4"></div>
+                <div className="h-3 bg-slate-200 rounded w-full"></div>
+                <div className="h-3 bg-slate-200 rounded w-3/4"></div>
+                <div className="h-3 bg-slate-200 rounded w-5/6"></div>
+                <div className="h-3 bg-slate-200 rounded w-full"></div>
+              </div>
+
+              {/* Main Content Mockup */}
+              <div className="col-span-12 md:col-span-10 flex flex-col gap-6">
+                {/* Header Stats */}
+                <div className="flex gap-4">
+                  <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 mb-2"></div>
+                    <div className="w-12 h-3 bg-slate-100 rounded"></div>
+                  </div>
+                  <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                    <div className="w-8 h-8 rounded-full bg-green-100 mb-2"></div>
+                    <div className="w-12 h-3 bg-slate-100 rounded"></div>
+                  </div>
+                  <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 mb-2"></div>
+                    <div className="w-12 h-3 bg-slate-100 rounded"></div>
+                  </div>
+                </div>
+
+                {/* Chart Mockup */}
+                <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-slate-100 flex items-end justify-between gap-2 px-8 pb-0">
+                  <div className="w-full bg-blue-200 rounded-t h-[40%]"></div>
+                  <div className="w-full bg-blue-300 rounded-t h-[60%]"></div>
+                  <div className="w-full bg-blue-400 rounded-t h-[80%]"></div>
+                  <div className="w-full bg-blue-500 rounded-t h-[50%]"></div>
+                  <div className="w-full bg-blue-600 rounded-t h-[75%]"></div>
+                  <div className="w-full bg-indigo-500 rounded-t h-[90%]"></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
-            Professional Report Cards for <br/>
-            <span className="text-blue-600">Nigerian Schools</span>
-          </h1>
-          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-8">
-            Stop wasting weeks on manual calculation. Create, manage, and distribute beautiful, WAEC-compliant student reports in minutes—not hours.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button onClick={onLoginClick} className="bg-blue-600 text-white text-lg px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-2">
-              Start Free Trial <ArrowRight size={20} />
-            </button>
-          </div>
-          
-         
-           <div className="relative mx-auto max-w-5xl mt-16">
-    <div className="bg-slate-900 rounded-xl shadow-2xl border-4 border-slate-200 overflow-hidden relative z-10">
-      {/* Browser Bar */}
-      <div className="bg-slate-800 p-3 flex items-center gap-2 border-b border-slate-700">
-        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-        <div className="ml-4 bg-slate-900 px-4 py-1 rounded-full text-xs text-slate-400 font-mono flex-1 max-w-xs">
-          app.smartresultcards.com.ng/dashboard
+
+          {/* Decorative Blobs */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-20 -z-0"></div>
         </div>
       </div>
-
-      {/* Abstract Dashboard UI */}
-      <div className="bg-slate-50 p-6 grid grid-cols-12 gap-6 h-64 md:h-96">
-        {/* Sidebar Mockup */}
-        <div className="hidden md:flex col-span-2 flex-col gap-3 border-r border-slate-200 pr-4">
-           <div className="h-8 bg-blue-600 rounded w-8 mb-4"></div>
-           <div className="h-3 bg-slate-200 rounded w-full"></div>
-           <div className="h-3 bg-slate-200 rounded w-3/4"></div>
-           <div className="h-3 bg-slate-200 rounded w-5/6"></div>
-           <div className="h-3 bg-slate-200 rounded w-full"></div>
-        </div>
-
-        {/* Main Content Mockup */}
-        <div className="col-span-12 md:col-span-10 flex flex-col gap-6">
-           {/* Header Stats */}
-           <div className="flex gap-4">
-              <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-                 <div className="w-8 h-8 rounded-full bg-blue-100 mb-2"></div>
-                 <div className="w-12 h-3 bg-slate-100 rounded"></div>
-              </div>
-              <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-                 <div className="w-8 h-8 rounded-full bg-green-100 mb-2"></div>
-                 <div className="w-12 h-3 bg-slate-100 rounded"></div>
-              </div>
-              <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-                 <div className="w-8 h-8 rounded-full bg-purple-100 mb-2"></div>
-                 <div className="w-12 h-3 bg-slate-100 rounded"></div>
-              </div>
-           </div>
-
-           {/* Chart Mockup */}
-           <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-slate-100 flex items-end justify-between gap-2 px-8 pb-0">
-               <div className="w-full bg-blue-200 rounded-t h-[40%]"></div>
-               <div className="w-full bg-blue-300 rounded-t h-[60%]"></div>
-               <div className="w-full bg-blue-400 rounded-t h-[80%]"></div>
-               <div className="w-full bg-blue-500 rounded-t h-[50%]"></div>
-               <div className="w-full bg-blue-600 rounded-t h-[75%]"></div>
-               <div className="w-full bg-indigo-500 rounded-t h-[90%]"></div>
-           </div>
-        </div>
-      </div>
-    </div>
-    
-    {/* Decorative Blobs */}
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-20 -z-0"></div>
-  </div>
-</div>
-</section>
-
+    </section>
       {/* Features */}
       <section id="features" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4">

@@ -84,10 +84,19 @@ const useAutoSave = (callback, delay = 2000) => {
 const LandingPage = ({ onLoginClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const CONTACT_NUMBER = '+2348102440375';
+  const WHATSAPP_BASE_URL = `https://wa.me/${CONTACT_NUMBER}`;
+
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
     if(el) el.scrollIntoView({ behavior: 'smooth' });
     setIsMenuOpen(false);
+  };
+
+  const handlePricingClick = (planName, price) => {
+    const message = `I want to pay for the ${planName} plan (${price} / term). Please tell me how to pay.`;
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`${WHATSAPP_BASE_URL}?text=${encodedMessage}`, '_blank');
   };
 
   const FeatureCard = ({ icon, title, desc }) => (
@@ -298,7 +307,7 @@ const LandingPage = ({ onLoginClick }) => {
               <h3 className="text-xl font-bold text-slate-900">Starter</h3>
               <div className="my-4"><span className="text-4xl font-extrabold text-slate-900">₦25k</span><span className="text-slate-500">/term</span></div>
               <ul className="space-y-3 mb-8"><PricingItem text="Up to 100 Students" /><PricingItem text="5 Teachers" /><PricingItem text="PDF Generation" /></ul>
-              <button onClick={onLoginClick} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50">Select Plan</button>
+              <button onClick={() => handlePricingClick('Starter', '₦25k')} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50">Select Plan</button>
             </div>
 
             <div className="bg-slate-900 p-8 rounded-2xl shadow-xl transform md:-translate-y-4 border border-slate-800 relative">
@@ -306,14 +315,14 @@ const LandingPage = ({ onLoginClick }) => {
               <h3 className="text-xl font-bold text-white">Standard</h3>
               <div className="my-4"><span className="text-4xl font-extrabold text-white">₦45k</span><span className="text-slate-400">/term</span></div>
               <ul className="space-y-3 mb-8 text-white"><PricingItem text="Up to 300 Students" /><PricingItem text="Unlimited Teachers" /><PricingItem text="Parent Portal" /><PricingItem text="Custom Branding" /></ul>
-              <button onClick={onLoginClick} className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700">Select Plan</button>
+              <button onClick={() => handlePricingClick('Standard', '₦45k')} className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700">Select Plan</button>
             </div>
 
             <div className="bg-white p-8 rounded-2xl shadow border border-slate-100 hover:border-blue-200 transition">
               <h3 className="text-xl font-bold text-slate-900">Premium</h3>
               <div className="my-4"><span className="text-4xl font-extrabold text-slate-900">₦75k</span><span className="text-slate-500">/term</span></div>
               <ul className="space-y-3 mb-8"><PricingItem text="Up to 1000 Students" /><PricingItem text="Unlimited Staff" /><PricingItem text="Priority Support" /></ul>
-              <button onClick={onLoginClick} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50">Select Plan</button>
+              <button onClick={() => handlePricingClick('Premium', '₦75k')} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50">Select Plan</button>
             </div>
           </div>
         </div>
@@ -326,7 +335,7 @@ const LandingPage = ({ onLoginClick }) => {
             <FileText />
             <span className="font-bold text-xl">SmartResultCards.com.ng</span>
           </div>
-          <p className="text-sm">The #1 Result Processing System for Nigerian Schools.</p>
+          <p className="text-sm">The #1 Result Processing System for Nigerian Schools. **Contact: +234 810 244 0375**</p>
           <div className="mt-8 text-xs">
             © {new Date().getFullYear()} SmartResultCards. All rights reserved.
           </div>
@@ -575,7 +584,7 @@ const SchoolAdmin = ({ profile, onLogout }) => {
     e.preventDefault();
     const form = new FormData(e.target);
     const data = Object.fromEntries(form.entries());
-    if (students.length >= school.max_students) return window.alert("Limit reached!");
+    if (students.length >= school.max_students) return window.alert("Limit reached! Upgrade your plan.");
     const pin = generatePIN();
     const autoAdm = generateAdmissionNumber();
     const { error } = await supabase.from('students').insert({
@@ -680,7 +689,7 @@ const SchoolAdmin = ({ profile, onLogout }) => {
            <div>
                <h1 className="text-xl md:text-2xl font-bold mb-6 text-slate-800">Welcome, {school?.name}</h1>
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                   <div className="bg-white p-6 rounded shadow border-l-4 border-blue-500"><h3>Students</h3><p className="text-3xl font-bold text-slate-700">{students.length}</p></div>
+                   <div className="bg-white p-6 rounded shadow border-l-4 border-blue-500"><h3>Students</h3><p className="text-3xl font-bold text-slate-700">{students.length} / {school?.max_students || '??'}</p></div>
                    <div className="bg-white p-6 rounded shadow border-l-4 border-green-500"><h3>Teachers</h3><p className="text-3xl font-bold text-slate-700">{teachers.length}</p></div>
                    <div className="bg-white p-6 rounded shadow border-l-4 border-purple-500"><h3>Admins</h3><p className="text-3xl font-bold text-slate-700">{admins.length}</p></div>
                </div>
@@ -1083,13 +1092,18 @@ const Auth = ({ onLogin, onParent, onBack }) => {
         e.preventDefault(); setLoading(true);
         try {
             if (mode === 'central') {
+                // Hardcoded central admin login for demonstration
                 if (form.email === 'oluwatoyin@admin.com' && form.password === 'Funmilola') onLogin({ role: 'central' });
+                else throw new Error("Invalid Central Admin credentials.");
             } else if (mode === 'school_reg') {
-                const { data: pinData } = await supabase.from('subscription_pins').select('*').eq('code', form.pin).eq('is_used', false).single();
+                const { data: pinData } = await supabase.from('subscription_pins').select('*').eq('code', form.pin).eq('is_used', false).maybeSingle();
                 if (!pinData) throw new Error('Invalid or Used PIN');
-                const { data: auth } = await supabase.auth.signUp({ email: form.email, password: form.password });
+                
+                const { data: auth, error: authError } = await supabase.auth.signUp({ email: form.email, password: form.password });
+                if(authError) throw authError;
+
                 if(auth.user) {
-                    const { data: school } = await supabase.from('schools').insert({ owner_id: auth.user.id, name: 'My School', max_students: pinData.student_limit }).select().single();
+                    const { data: school } = await supabase.from('schools').insert({ owner_id: auth.user.id, name: form.name + "'s School", max_students: pinData.student_limit }).select().single();
                     await supabase.from('profiles').insert({ id: auth.user.id, full_name: form.name, role: 'admin', school_id: school.id });
                     await supabase.from('subscription_pins').update({ is_used: true }).eq('id', pinData.id);
                     window.alert("Registration Successful! Please Login."); setMode('login');
@@ -1098,16 +1112,18 @@ const Auth = ({ onLogin, onParent, onBack }) => {
                  const role = mode === 'teacher_reg' ? 'teacher' : 'admin';
                  let schoolId = null;
                  if (role === 'teacher') {
-                     const { data: sch } = await supabase.from('schools').select('id').eq('id', form.schoolCode).single();
+                     const { data: sch } = await supabase.from('schools').select('id').eq('id', form.schoolCode).maybeSingle();
                      if (!sch) throw new Error('Invalid School Code');
                      schoolId = sch.id;
                  } else {
-                     const { data: schs } = await supabase.from('schools').select('*'); 
+                     const { data: schs } = await supabase.from('schools').select('id, admin_invites'); 
                      const targetSchool = schs?.find(s => (s.admin_invites || []).some(inv => inv.code === form.schoolCode && inv.email === form.email));
                      if (!targetSchool) throw new Error("Invalid Invite Code or Email mismatch.");
                      schoolId = targetSchool.id;
                  }
-                 const { data: auth } = await supabase.auth.signUp({ email: form.email, password: form.password });
+                 const { data: auth, error: authError } = await supabase.auth.signUp({ email: form.email, password: form.password });
+                 if(authError) throw authError;
+
                  if(auth.user){
                     await supabase.from('profiles').insert({ id: auth.user.id, full_name: form.name, role: role, school_id: schoolId });
                     if(role === 'admin') {
@@ -1121,7 +1137,11 @@ const Auth = ({ onLogin, onParent, onBack }) => {
                 const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
                 if (error) throw error;
             }
-        } catch (err) { window.alert(err.message); } finally { setLoading(false); }
+        } catch (err) { 
+            window.alert(err.message); 
+        } finally { 
+            setLoading(false); 
+        }
     };
 
     return (
@@ -1220,7 +1240,12 @@ const CentralAdmin = ({ onLogout }) => {
                 <h1 className="text-2xl font-bold">Central Admin</h1>
                 <button onClick={onLogout} className="text-red-400 border border-red-400 px-3 py-1 rounded hover:bg-red-400 hover:text-white transition">Logout</button>
             </div>
-            <button onClick={async()=>{ await supabase.from('subscription_pins').insert({ code: `SUB-${Math.floor(Math.random()*90000)}`, student_limit: 300 }); window.location.reload(); }} className="bg-blue-600 px-6 py-3 rounded font-bold mb-6 hover:bg-blue-500 transition block w-full md:w-auto">+ Generate New PIN</button>
+            <button onClick={async()=>{ 
+                const limit = window.prompt("Enter student limit for this PIN (e.g., 100, 300, 1000):", "300");
+                const student_limit = parseInt(limit) || 300;
+                await supabase.from('subscription_pins').insert({ code: `SUB-${Math.floor(Math.random()*90000)}`, student_limit }); 
+                window.location.reload(); 
+            }} className="bg-blue-600 px-6 py-3 rounded font-bold mb-6 hover:bg-blue-500 transition block w-full md:w-auto">+ Generate New PIN</button>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {pins.map(p=><div key={p.id} className={`p-4 rounded border ${p.is_used ? 'bg-slate-800 border-slate-700 text-gray-500' : 'bg-green-900 border-green-700 text-green-100'}`}><p className="text-xl font-bold">{p.code}</p><p className="text-xs mt-1">{p.is_used?'USED':'ACTIVE'}</p></div>)}
             </div>
@@ -1276,7 +1301,6 @@ const App = () => {
   // If Public View
   if (view === 'landing') return <LandingPage onLoginClick={() => setView('auth')} />;
   if (view === 'parent') return <ParentPortal onBack={() => setView('auth')} />;
-  // 'central' view must only be reachable through the Auth component's hardcoded login
   
   // Auth handles login/reg
   return <Auth onLogin={(d) => setView(d.role === 'central' ? 'central' : 'dashboard')} onParent={() => setView('parent')} onBack={() => setView('landing')} />;

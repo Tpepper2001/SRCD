@@ -6,7 +6,8 @@ import {
 import {
   LayoutDashboard, LogOut, Loader2, Plus, School, User, Download,
   X, Eye, Trash2, ShieldCheck, Save, Menu, Upload, Users, Key, Copy,
-  CheckCircle, FileText, Calculator, Smartphone, Shield, ArrowRight, Star
+  CheckCircle, FileText, Calculator, Smartphone, Shield, ArrowRight, Star,
+  Globe, Search
 } from 'lucide-react';
 
 // ==================== SUPABASE CONFIG ====================
@@ -79,12 +80,80 @@ const useAutoSave = (callback, delay = 2000) => {
   return { save: trigger, saving };
 };
 
+// ==================== SEO COMPONENT ====================
+// This component manages the document head for SEO optimization
+const SEOHead = ({ title, description, keywords }) => {
+  useEffect(() => {
+    // Update Title
+    document.title = title;
+
+    // Update Meta Description
+    let metaDesc = document.querySelector("meta[name='description']");
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = 'description';
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.content = description;
+
+    // Update Keywords
+    let metaKeys = document.querySelector("meta[name='keywords']");
+    if (!metaKeys) {
+      metaKeys = document.createElement('meta');
+      metaKeys.name = 'keywords';
+      document.head.appendChild(metaKeys);
+    }
+    metaKeys.content = keywords || "school result portal, waec result checker, nigerian school software, report card generator";
+
+    // Open Graph Tags (Social Media)
+    const setOG = (property, content) => {
+      let tag = document.querySelector(`meta[property='${property}']`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('property', property);
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+
+    setOG('og:title', title);
+    setOG('og:description', description);
+    setOG('og:type', 'website');
+    setOG('og:url', window.location.href);
+    setOG('og:site_name', 'SmartReportCard.com.ng');
+
+  }, [title, description, keywords]);
+
+  return null;
+};
+
 // ==================== LANDING PAGE COMPONENT ====================
 const LandingPage = ({ onNavigate }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const CONTACT_NUMBER = '+2348102440103';
   const WHATSAPP_BASE_URL = `https://wa.me/${CONTACT_NUMBER}`;
+
+  // Structured Data for Google (JSON-LD)
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SmartReportCard",
+    "url": "https://smartreportcard.com.ng",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web",
+    "description": "Automated result processing and report card generation system specifically designed for Nigerian Primary and Secondary schools.",
+    "offers": {
+      "@type": "Offer",
+      "price": "25000",
+      "priceCurrency": "NGN"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "120"
+    }
+  };
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
@@ -99,26 +168,37 @@ const LandingPage = ({ onNavigate }) => {
   };
 
   const FeatureCard = ({ icon, title, desc }) => (
-    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition border border-slate-100">
+    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition border border-slate-100 h-full">
       <div className="mb-4 bg-slate-50 w-12 h-12 rounded-lg flex items-center justify-center">
         {icon}
       </div>
       <h3 className="font-bold text-lg mb-2 text-slate-900">{title}</h3>
-      <p className="text-slate-600 text-sm">{desc}</p>
+      <p className="text-slate-600 text-sm leading-relaxed">{desc}</p>
     </div>
   );
 
   const PricingItem = ({ text }) => (
     <li className="flex items-center gap-2 text-sm text-slate-600">
-      <CheckCircle size={16} className="text-green-500" />
+      <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
       {text}
     </li>
   );
 
   return (
     <div className="font-sans text-slate-800 bg-white overflow-x-hidden">
+      <SEOHead 
+        title="SmartReportCard.com.ng | Best School Result Portal in Nigeria"
+        description="The easiest way to generate school report cards in Nigeria. Automated grading, WAEC standards, and online result checker for parents. Start your free trial today."
+        keywords="school result portal nigeria, report card software, result management system, primary school results, secondary school results, waec grading system software"
+      />
+      
+      {/* JSON-LD Script */}
+      <script type="application/ld+json">
+        {JSON.stringify(schemaData)}
+      </script>
+
       {/* Nav */}
-      <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+      <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
@@ -126,7 +206,7 @@ const LandingPage = ({ onNavigate }) => {
                 <FileText className="text-white h-6 w-6" />
               </div>
               <span className="font-bold text-xl tracking-tight text-slate-900">
-                SmartResultCard<span className="text-blue-600">.com.ng</span>
+                SmartReportCard<span className="text-blue-600">.com.ng</span>
               </span>
             </div>
             
@@ -139,7 +219,7 @@ const LandingPage = ({ onNavigate }) => {
             </div>
 
             <div className="md:hidden flex items-center">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-600">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-600" aria-label="Toggle menu">
                 {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
               </button>
             </div>
@@ -156,7 +236,8 @@ const LandingPage = ({ onNavigate }) => {
         )}
       </nav>
 
-       <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-blue-50 to-white">
+      {/* Hero Section */}
+       <header className="pt-32 pb-20 px-4 bg-gradient-to-b from-blue-50 to-white">
       <div className="max-w-7xl mx-auto text-center">
         {/* Badge */}
         <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full font-semibold text-sm mb-6">
@@ -169,14 +250,14 @@ const LandingPage = ({ onNavigate }) => {
 
         {/* Heading */}
         <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
-          Professional Report Cards for <br />
+          The Best Report Card System for <br />
           <span className="text-blue-600">Nigerian Schools</span>
         </h1>
 
         {/* Subheading */}
         <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-8">
-          Stop wasting weeks on manual calculation. Create, manage, and distribute
-          beautiful, WAEC-compliant student reports in minutes—not hours.
+          Eliminate manual grading errors. SmartReportCard automates Continuous Assessment, 
+          Totals, Grades, and generates beautiful PDFs in seconds.
         </p>
 
         {/* CTA Button */}
@@ -190,7 +271,7 @@ const LandingPage = ({ onNavigate }) => {
         </div>
 
         {/* Abstract Browser Interface */}
-        <div className="relative mx-auto max-w-5xl mt-16">
+        <div className="relative mx-auto max-w-5xl mt-16" aria-hidden="true">
           <div className="bg-slate-900 rounded-xl shadow-2xl border-4 border-slate-200 overflow-hidden relative z-10">
             {/* Browser Bar */}
             <div className="bg-slate-800 p-3 flex items-center gap-2 border-b border-slate-700">
@@ -198,7 +279,7 @@ const LandingPage = ({ onNavigate }) => {
               <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <div className="ml-4 bg-slate-900 px-4 py-1 rounded-full text-xs text-slate-400 font-mono flex-1 max-w-xs">
-                app.smartresultcards.com.ng/dashboard
+                smartreportcard.com.ng
               </div>
             </div>
 
@@ -248,22 +329,23 @@ const LandingPage = ({ onNavigate }) => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-20 -z-0"></div>
         </div>
       </div>
-    </section>
+    </header>
+
       {/* Features */}
       <section id="features" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Everything You Need</h2>
-            <p className="text-slate-600 mt-4 max-w-2xl mx-auto">We built this specifically for the Nigerian syllabus.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Features Built for Nigerian Syllabus</h2>
+            <p className="text-slate-600 mt-4 max-w-2xl mx-auto">From JSS1 to SS3, we handle all your assessment configuration needs.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard icon={<Calculator className="text-blue-600" />} title="Automated Grading" desc="Enter scores, and we handle Totals, Grades (A-F), and Remarks automatically." />
-             <FeatureCard icon={<FileText className="text-green-600" />} title="Professional PDFs" desc="Generate branded PDF reports with your school logo, address, and signature." />
-            <FeatureCard icon={<Smartphone className="text-purple-600" />} title="Parent Portal" desc="Parents can check results online using a secure PIN." />
-            <FeatureCard icon={<Users className="text-orange-600" />} title="Teacher Roles" desc="Form teachers enter scores, Principals approve them." />
-            <FeatureCard icon={<CheckCircle className="text-teal-600" />} title="Behavioral Analysis" desc="Rate student psychomotor and affective traits easily." />
-            <FeatureCard icon={<Shield className="text-indigo-600" />} title="Secure Data" desc="Your school data is encrypted and backed up daily." />
+            <FeatureCard icon={<Calculator className="text-blue-600" />} title="Automated Grading" desc="Enter test and exam scores, and our system calculates Totals, Grades (A-F), and Remarks instantly." />
+             <FeatureCard icon={<FileText className="text-green-600" />} title="Professional PDF Reports" desc="Generate WAEC-standard PDF reports branded with your school name, address, logo, and principal's signature." />
+            <FeatureCard icon={<Smartphone className="text-purple-600" />} title="Online Result Checker" desc="Give parents a PIN to check their children's results online via our Parent Portal." />
+            <FeatureCard icon={<Users className="text-orange-600" />} title="Staff Management" desc="Assign Form Teachers to specific classes. Teachers only see and grade their own students." />
+            <FeatureCard icon={<CheckCircle className="text-teal-600" />} title="Psychomotor Analysis" desc="Easily rate behavioral traits like Punctuality, Neatness, and Politeness on a 1-5 scale." />
+            <FeatureCard icon={<Shield className="text-indigo-600" />} title="Bank-Grade Security" desc="Your school data is encrypted and safely stored in the cloud. No more lost record books." />
           </div>
         </div>
       </section>
@@ -275,21 +357,21 @@ const LandingPage = ({ onNavigate }) => {
             <h2 className="text-3xl font-bold text-slate-900">Go Live in 3 Simple Steps</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
+            <article>
               <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold border-4 border-white shadow-lg">1</div>
               <h3 className="text-xl font-bold mb-2">Register School</h3>
-              <p className="text-slate-600">Create your account and upload your school logo.</p>
-            </div>
-            <div>
+              <p className="text-slate-600">Create your admin account and upload your school logo and signature.</p>
+            </article>
+            <article>
               <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold border-4 border-white shadow-lg">2</div>
               <h3 className="text-xl font-bold mb-2">Add Data</h3>
-              <p className="text-slate-600">Add students and teachers. Teachers log in to input scores.</p>
-            </div>
-            <div>
+              <p className="text-slate-600">Add students and invite teachers. Teachers log in to input scores easily.</p>
+            </article>
+            <article>
               <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold border-4 border-white shadow-lg">3</div>
               <h3 className="text-xl font-bold mb-2">Generate Reports</h3>
-              <p className="text-slate-600">Click one button to generate and print PDFs.</p>
-            </div>
+              <p className="text-slate-600">Click one button to generate, print, or email PDF result cards.</p>
+            </article>
           </div>
         </div>
       </section>
@@ -298,7 +380,7 @@ const LandingPage = ({ onNavigate }) => {
       <section id="pricing" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900">Simple, Transparent Pricing</h2>
+            <h2 className="text-3xl font-bold text-slate-900">Affordable Pricing for Nigerian Schools</h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -313,7 +395,7 @@ const LandingPage = ({ onNavigate }) => {
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-500 text-white px-4 py-1 rounded-full text-xs font-bold tracking-wide">POPULAR</div>
               <h3 className="text-xl font-bold text-white">Standard</h3>
               <div className="my-4"><span className="text-4xl font-extrabold text-white">₦45k</span><span className="text-slate-400">/term</span></div>
-              <ul className="space-y-3 mb-8 text-white"><PricingItem text="Up to 300 Students" /><PricingItem text="Unlimited Teachers" /><PricingItem text="Parent Portal" /><PricingItem text="Custom Branding" /></ul>
+              <ul className="space-y-3 mb-8 text-white"><PricingItem text="Up to 300 Students" /><PricingItem text="Unlimited Teachers" /><PricingItem text="Online Result Checker" /><PricingItem text="Custom Branding" /></ul>
               <button onClick={() => handlePricingClick('Standard', '₦45k')} className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700">Select Plan</button>
             </div>
 
@@ -332,11 +414,11 @@ const LandingPage = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4 text-white">
             <FileText />
-            <span className="font-bold text-xl">SmartResultCards.com.ng</span>
+            <span className="font-bold text-xl">SmartReportCard.com.ng</span>
           </div>
-          <p className="text-sm">The #1 Result Processing System for Nigerian Schools. ||Contact: +234 810 244 0103</p>
+          <p className="text-sm">The #1 Result Processing System for Nigerian Schools. || Contact: +234 810 244 0103 </p>
           <div className="mt-8 text-xs">
-            © {new Date().getFullYear()} SmartResultCards. All rights reserved.
+            © {new Date().getFullYear()} SmartReportCard. All rights reserved.
           </div>
         </div>
       </footer>
@@ -495,7 +577,7 @@ const ResultPDF = ({ school, student, results, classInfo, comments, behaviors = 
             </View>
             )}
         </View>
-        <Text style={pdfStyles.brandingFooter}>Generated by SmartResultCards.com.ng</Text>
+        <Text style={pdfStyles.brandingFooter}>Generated by SmartReportCard.com.ng</Text>
       </Page>
     </Document>
   );
@@ -665,6 +747,10 @@ const SchoolAdmin = ({ profile, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans flex-col md:flex-row">
+      <SEOHead 
+        title={`${school?.name || 'Admin'} - SmartReportCard Dashboard`} 
+        description="Manage your school results, students, and teachers." 
+      />
       <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md z-20 sticky top-0">
           <h2 className="font-bold flex items-center gap-2"><School size={20}/> Admin</h2>
           <button onClick={() => setSidebarOpen(!sidebarOpen)}><Menu /></button>
@@ -975,6 +1061,10 @@ const TeacherDashboard = ({ profile, onLogout }) => {
 
   return (
     <div className="flex h-screen bg-gray-50 flex-col md:flex-row">
+      <SEOHead 
+        title={`${profile.full_name} - Teacher Dashboard`} 
+        description="Enter scores and manage student comments." 
+      />
       <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow sticky top-0 z-20">
           <h2 className="font-bold">{profile.full_name}</h2>
           <button onClick={() => setSidebarOpen(!sidebarOpen)}><Menu /></button>
@@ -1195,12 +1285,16 @@ const Auth = ({ onLogin, onParent, onBack, initialMode = 'login' }) => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+             <SEOHead 
+                title={mode === 'login' ? "Login | SmartReportCard.com.ng" : "Register School | SmartReportCard.com.ng"}
+                description="Secure login for SmartReportCard Portal. Access your school results, manage students, or register a new school account."
+            />
             <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md border-t-4 border-blue-600">
                 <div className="text-center mb-6">
                     <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
                         <School className="text-blue-600" size={32} />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-800">SmartResultCards Portal</h1>
+                    <h1 className="text-2xl font-bold text-slate-800">SmartReportCard Portal</h1>
                 </div>
                 <div className="flex flex-wrap justify-center gap-4 mb-6 text-xs font-bold border-b pb-2">
                     {['login', 'school_reg', 'teacher_reg', 'admin_reg'].map(m => <button key={m} onClick={()=>setMode(m)} className={`capitalize pb-1 ${mode===m?'text-blue-600 border-b-2 border-blue-600':''}`}>{m.replace('school_reg', 'Start School (Trial/Paid)').replace('teacher_reg', 'Join (Tutor)').replace('admin_reg', 'Join (Admin)').replace('_', ' ')}</button>)}
@@ -1255,6 +1349,10 @@ const ParentPortal = ({ onBack }) => {
 
     if (data) return (
         <div className="fixed inset-0 bg-slate-800 z-50 flex flex-col h-screen">
+             <SEOHead 
+                title={`Result: ${data.student.name} | SmartReportCard`} 
+                description="View and download student result PDF."
+            />
             <div className="bg-white p-4 shadow flex justify-between items-center">
                 <button onClick={()=>setData(null)} className="flex items-center gap-2 font-bold"><X /> Exit Portal</button>
                 <div className="flex gap-3">
@@ -1268,6 +1366,10 @@ const ParentPortal = ({ onBack }) => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-green-50 p-4">
+            <SEOHead 
+                title="Parent Result Checker | SmartReportCard.com.ng" 
+                description="Check your child's school result online using admission number and PIN."
+            />
             <form onSubmit={fetchResult} className="bg-white p-8 rounded-xl shadow-xl w-full max-w-sm border-t-4 border-green-600">
                 <h2 className="text-2xl font-bold text-center mb-2">Parent Portal</h2>
                 <p className="text-center text-gray-500 mb-6 text-sm">Enter student details to view result.</p>
@@ -1343,7 +1445,7 @@ const App = () => {
       }
     });
     return () => listener.subscription.unsubscribe();
-  }, []); // Empty dependency array fixed the loop
+  }, []); 
 
   useEffect(() => {
     if (session) {

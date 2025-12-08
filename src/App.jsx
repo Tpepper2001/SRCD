@@ -7,7 +7,7 @@ import {
   LayoutDashboard, LogOut, Loader2, Plus, School, User, Download,
   X, Eye, Trash2, ShieldCheck, Save, Menu, Upload, Users, Key, Copy,
   CheckCircle, FileText, Calculator, Smartphone, Shield, ArrowRight, Star,
-  Globe, Search
+  Globe, Search, ChevronUp
 } from 'lucide-react';
 
 // ==================== SUPABASE CONFIG ====================
@@ -21,6 +21,9 @@ const BEHAVIORAL_TRAITS = [
   'RESPECT', 'RESPONSIBILITY', 'EMPATHY', 'PUNCTUALITY', 'NEATNESS', 'INITIATIVE'
 ];
 const RATINGS = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'];
+
+// URL to a generic professional school/tech image for link previews. 
+const DEFAULT_PREVIEW_IMAGE = "https://placehold.co/1200x630/0f172a/ffffff/png?text=SmartReportCard.com.ng&font=roboto";
 
 const isExamField = (str) => {
     if (!str) return false;
@@ -81,48 +84,41 @@ const useAutoSave = (callback, delay = 2000) => {
 };
 
 // ==================== SEO COMPONENT ====================
-// This component manages the document head for SEO optimization
-const SEOHead = ({ title, description, keywords }) => {
+const SEOHead = ({ title, description, keywords, image }) => {
   useEffect(() => {
-    // Update Title
+    const finalImage = image || DEFAULT_PREVIEW_IMAGE;
+    const currentUrl = window.location.href;
+
     document.title = title;
 
-    // Update Meta Description
-    let metaDesc = document.querySelector("meta[name='description']");
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.name = 'description';
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.content = description;
-
-    // Update Keywords
-    let metaKeys = document.querySelector("meta[name='keywords']");
-    if (!metaKeys) {
-      metaKeys = document.createElement('meta');
-      metaKeys.name = 'keywords';
-      document.head.appendChild(metaKeys);
-    }
-    metaKeys.content = keywords || "school result portal, waec result checker, nigerian school software, report card generator";
-
-    // Open Graph Tags (Social Media)
-    const setOG = (property, content) => {
-      let tag = document.querySelector(`meta[property='${property}']`);
-      if (!tag) {
-        tag = document.createElement('meta');
-        tag.setAttribute('property', property);
-        document.head.appendChild(tag);
+    const setMeta = (attributeName, attributeValue, content) => {
+      let element = document.querySelector(`meta[${attributeName}="${attributeValue}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute(attributeName, attributeValue);
+        document.head.appendChild(element);
       }
-      tag.content = content;
+      element.setAttribute('content', content);
     };
 
-    setOG('og:title', title);
-    setOG('og:description', description);
-    setOG('og:type', 'website');
-    setOG('og:url', window.location.href);
-    setOG('og:site_name', 'SmartReportCard.com.ng');
+    setMeta('name', 'description', description);
+    setMeta('name', 'keywords', keywords || "school result portal, waec result checker, nigerian school software, report card generator");
 
-  }, [title, description, keywords]);
+    // Open Graph
+    setMeta('property', 'og:title', title);
+    setMeta('property', 'og:description', description);
+    setMeta('property', 'og:image', finalImage);
+    setMeta('property', 'og:url', currentUrl);
+    setMeta('property', 'og:type', 'website');
+    setMeta('property', 'og:site_name', 'SmartReportCard.com.ng');
+
+    // Twitter
+    setMeta('name', 'twitter:card', 'summary_large_image');
+    setMeta('name', 'twitter:title', title);
+    setMeta('name', 'twitter:description', description);
+    setMeta('name', 'twitter:image', finalImage);
+
+  }, [title, description, keywords, image]);
 
   return null;
 };
@@ -130,6 +126,7 @@ const SEOHead = ({ title, description, keywords }) => {
 // ==================== LANDING PAGE COMPONENT ====================
 const LandingPage = ({ onNavigate }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showStickyCTA, setShowStickyCTA] = useState(false);
 
   const CONTACT_NUMBER = '+2348102440103';
   const WHATSAPP_BASE_URL = `https://wa.me/${CONTACT_NUMBER}`;
@@ -154,6 +151,16 @@ const LandingPage = ({ onNavigate }) => {
       "ratingCount": "120"
     }
   };
+
+  // Scroll Listener for Sticky CTA
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show sticky CTA if user scrolls past 500px
+      setShowStickyCTA(window.scrollY > 500);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
@@ -185,17 +192,14 @@ const LandingPage = ({ onNavigate }) => {
   );
 
   return (
-    <div className="font-sans text-slate-800 bg-white overflow-x-hidden">
+    <div className="font-sans text-slate-800 bg-white overflow-x-hidden pb-16 md:pb-0">
       <SEOHead 
         title="SmartReportCard.com.ng | Best School Result Portal in Nigeria"
-        description="The easiest way to generate school report cards in Nigeria. Automated grading, WAEC standards, and online result checker for parents. Start your free trial today."
-        keywords="school result portal nigeria, report card software, result management system, primary school results, secondary school results, waec grading system software"
+        description="Generate professional student report cards in minutes. Automated grading, WAEC standards, and online result checker for parents. Try for free."
+        keywords="school result portal nigeria, report card software, result management system, waec grading system software"
       />
       
-      {/* JSON-LD Script */}
-      <script type="application/ld+json">
-        {JSON.stringify(schemaData)}
-      </script>
+      <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
 
       {/* Nav */}
       <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200" aria-label="Main navigation">
@@ -235,6 +239,26 @@ const LandingPage = ({ onNavigate }) => {
           </div>
         )}
       </nav>
+
+      {/* Sticky Call to Action */}
+      {showStickyCTA && (
+        <div className="fixed z-40 bottom-4 left-4 right-4 md:left-auto md:right-8 md:bottom-8 animate-in slide-in-from-bottom-10 fade-in duration-500">
+          <div className="bg-slate-900 text-white p-4 rounded-xl shadow-2xl flex items-center justify-between gap-4 border border-slate-700">
+            <div className="hidden md:block">
+              <p className="font-bold text-sm">Automate your results today</p>
+              <p className="text-xs text-slate-400">Join 100+ schools in Nigeria</p>
+            </div>
+            <div className="flex gap-2 w-full md:w-auto">
+               <button onClick={() => onNavigate('login')} className="flex-1 md:flex-none px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-bold border border-slate-600">
+                 Login
+               </button>
+               <button onClick={() => onNavigate('school_reg')} className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-blue-600/30 text-sm whitespace-nowrap flex items-center justify-center gap-1">
+                 Start Free Trial <ArrowRight size={14} />
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
        <header className="pt-32 pb-20 px-4 bg-gradient-to-b from-blue-50 to-white">
@@ -279,7 +303,7 @@ const LandingPage = ({ onNavigate }) => {
               <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <div className="ml-4 bg-slate-900 px-4 py-1 rounded-full text-xs text-slate-400 font-mono flex-1 max-w-xs">
-                smartreportcard.com.ng
+                app.smartreportcard.com.ng/dashboard
               </div>
             </div>
 
@@ -416,7 +440,7 @@ const LandingPage = ({ onNavigate }) => {
             <FileText />
             <span className="font-bold text-xl">SmartReportCard.com.ng</span>
           </div>
-          <p className="text-sm">The #1 Result Processing System for Nigerian Schools. || Contact: +234 810 244 0103 </p>
+          <p className="text-sm">The #1 Result Processing System for Nigerian Schools. || Contact: +234 810 244 0103</p>
           <div className="mt-8 text-xs">
             © {new Date().getFullYear()} SmartReportCard. All rights reserved.
           </div>

@@ -83,7 +83,7 @@ const useAutoSave = (callback, delay = 2000) => {
 const LandingPage = ({ onNavigate }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const CONTACT_NUMBER = '+2348102440375';
+  const CONTACT_NUMBER = '+2348102440103';
   const WHATSAPP_BASE_URL = `https://wa.me/${CONTACT_NUMBER}`;
 
   const scrollToSection = (id) => {

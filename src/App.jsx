@@ -334,7 +334,7 @@ const LandingPage = ({ onNavigate }) => {
             <FileText />
             <span className="font-bold text-xl">SmartResultCards.com.ng</span>
           </div>
-          <p className="text-sm">The #1 Result Processing System for Nigerian Schools. **Contact: +234 810 244 0375**</p>
+          <p className="text-sm">The #1 Result Processing System for Nigerian Schools. ||Contact: +234 810 244 0103</p>
           <div className="mt-8 text-xs">
             © {new Date().getFullYear()} SmartResultCards. All rights reserved.
           </div>

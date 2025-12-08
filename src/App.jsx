@@ -126,7 +126,7 @@ const LandingPage = ({ onNavigate }) => {
                 <FileText className="text-white h-6 w-6" />
               </div>
               <span className="font-bold text-xl tracking-tight text-slate-900">
-                SmartResultCards<span className="text-blue-600">.ng</span>
+                SmartResultCard<span className="text-blue-600">.com.ng</span>
               </span>
             </div>
             
